@@ -1,6 +1,0 @@
-[
-    {"name": "dog", "color": "black", "age": 2},
-    {"name": "cat", "color": "yellow", "age": 3},
-    {"name": "horse", "color": "brown", "age": 4},
-    {"name": "tiger", "color": "orange", "age": 5}
-]
