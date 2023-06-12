@@ -13,4 +13,7 @@ import java.util.List;
 public interface TagRepository extends JpaRepository<Tag, Long> {
     @Query("SELECT d FROM Tag d ORDER BY d.viewed DESC")
     List<Tag> findTopTagsByViewed(Pageable pageable);
+
+    @Query(value ="SELECT t.* FROM tag t JOIN tag_dish td ON t.id = td.tag_id WHERE td.dish_id = :dishId" ,nativeQuery = true)
+    List<Tag> findByDishId(Long dishId);
 }

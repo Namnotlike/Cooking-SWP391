@@ -7,7 +7,6 @@ type Params = {
 const LeftBar = ({categories}:Params) => {
     return (
         <div>
-            <h1>Recipes</h1>
             {categories.map((row,index)=>(
                 <Collapse key={index} label={row.name} categoryDetails={row.categoryDetails}/>
             ))}

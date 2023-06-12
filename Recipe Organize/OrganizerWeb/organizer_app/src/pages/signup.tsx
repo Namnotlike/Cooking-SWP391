@@ -11,6 +11,7 @@ import { ApiRegistry } from "@/services/AccountService";
 import { useCookies } from "react-cookie";
 import path from "path";
 import { JsonBody } from "@/types";
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 const Page = () => {
     const [cookies, setCookie, removeCookie] = useCookies(['userVerify']);
     const [selectedImage,setSelectedImage] = React.useState("");
@@ -44,18 +45,22 @@ const Page = () => {
         }
     }
     return (
-            <div className="row p-0 m-0 bg-white" style={{height:'100vh'}}>
-                <div className="d-none d-sm-none d-md-none d-lg-block col-sm-6">
-                    <div className="d-flex justify-content align-items-center w-100 h-100" style={{padding:100,backgroundImage:'url(materials/bg_login_left.svg)'}}>
-                       {/* NOTHING */}
+            <div className="row m-0 bg-white" style={{height:'100vh',paddingInline:200}}>
+                <div className="d-none d-sm-none d-md-none d-lg-block col-sm-6 text-center">
+                    <div className="d-flex align-items-center h-100 w-100" style={{position:'relative'}}>
+                        <Image src="/materials/bg_login_left.svg" width={0} height={0} style={{position:'absolute',top:0,left:0,width:'100%',height:'auto'}} alt="Picture of the author" />
+                        <div className="d-flex align-items-center hover_text_green" style={{position:'absolute',top:30,left:30}} onClick={()=>{location.href="../login"}}>
+                            <ArrowBackIcon />
+                            <span className="ms-2">Back to login page</span>
+                        </div>
                     </div>
                 </div>
                 <div className="col-12 col-sm-12 col-md-12 col-lg-6 row d-flex justify-content-center m-0">
-                    <div className="col-12 col-sm-12 col-md-12 col-lg-8">
-                        <p className="text-end mt-2 mb-3" style={{fontSize:14}}>Step 1 of 2 <a href="#" style={{color:'#3665C5'}}>Sign Up</a></p>
+                    <div className="col-12 col-sm-12 col-md-12 col-lg-12 mx-0 px-0" style={{position:'relative'}}>
+                        <p className="text-end mt-2 mb-3" style={{fontSize:14,position:'absolute',top:0,right:0}}>Step 1 of 2 <a href="#" style={{color:'#3665C5'}}>Sign Up</a></p>
                         <h4 className="pt-3">Register your account</h4>
-                        <p className="pt-3" style={{color:'#8692A6'}}>Fill the details bellow to submit register account.</p>
-                        <form onSubmit={handleSubmitSignup}>
+                        {/* <p className="pt-3" style={{color:'#8692A6'}}>Fill the details bellow to submit register account.</p> */}
+                        <form onSubmit={handleSubmitSignup} className="pt-3">
                             <div className="col-12 col-sm-7 bg-lightgray row p-3 ms-1" style={{borderRadius:20}}>
                                 <div className="col-12 col-sm-4 p-0 hover_cursor d-flex justify-content-center align-items-center" style={{height:100,width:100,border:'2px solid black',borderRadius:'50%'}} onClick={handleClickUpload}>
                                         {selectedImage != "" && (<Image loading="eager" className="bg-warning" priority={true} alt="Avatar" src={selectedImage} width={0} height={0}  style={{height:100,width:100,border:'1px solid lightgray',borderRadius:'50%'}} />)

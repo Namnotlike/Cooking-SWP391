@@ -8,6 +8,7 @@ import com.example.OrganizeRecipeApi.repositories.DishRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,14 +19,42 @@ public class CookerService {
     @Autowired
     private CookerRepository cookerRepository;
 
-    public List<Cooker> findByCookerName(String keyword,int size){
-        Pageable pageable = PageRequest.of(0,size);
-        return cookerRepository.findByCookerName(keyword,pageable);
+    public List<Cooker> findByCookerName(String keyword,int page,int size){
+        int offset = (page - 1) * size;
+        return cookerRepository.findByCookerName(keyword,offset,size);
     }
 
     public Cooker insert(Cooker cooker){
         cooker.setId(0l);
         Cooker inserted =  cookerRepository.save(cooker);
         return inserted;
+    }
+
+    public Cooker findByUsername(String username) {
+        List<Cooker> list = cookerRepository.findByUsername(username);
+        if(list!=null && !list.isEmpty()){
+            return list.get(0);
+        }
+        return null;
+    }
+
+    public Cooker findById(Long id) {
+        Optional<Cooker> opt = cookerRepository.findById(id);
+        if(opt.isPresent())
+            return opt.get();
+        return null;
+    }
+
+    public Cooker save(Cooker cooker) {
+        return cookerRepository.save(cooker);
+    }
+
+    public List<Cooker> findByAccountStatus(String status){
+        return cookerRepository.findByAccountStatus(status);
+    }
+
+    public List<Cooker> findByStatus(String accountStatus, boolean status){
+        List<Cooker> founded = cookerRepository.findByStatus(accountStatus,status);
+        return founded;
     }
 }

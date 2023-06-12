@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.*;
 
 import javax.persistence.*;
 import lombok.Data;
+import lombok.ToString;
 
 @Data
 @Entity
@@ -40,7 +40,7 @@ public class Dish extends BaseEntity{
             joinColumns = @JoinColumn(name = "dish_id"),
             inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
-    @JsonBackReference
+    @JsonManagedReference
     private Set<Tag> tags = new HashSet<>();
 
     @OneToMany(mappedBy = "dish")
@@ -57,7 +57,7 @@ public class Dish extends BaseEntity{
 
     @ManyToOne
     @JoinColumn(name = "cooker_id")
-    @JsonManagedReference
+    @JsonBackReference
     private Cooker cooker;
 
     @ManyToOne
@@ -87,4 +87,14 @@ public class Dish extends BaseEntity{
             }
         }
     }
+    @Override
+    public String toString() {
+        return "Dish{" +
+                "id=" + getId() +
+                ", name='" + dishName + '\'' +
+                ", tags=" + tags.stream().map(Tag::getTagName).collect(Collectors.toList()) +
+                // Các thuộc tính khác cần hiển thị
+                '}';
+    }
+
 }

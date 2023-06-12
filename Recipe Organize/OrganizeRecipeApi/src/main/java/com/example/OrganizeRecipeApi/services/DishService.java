@@ -42,9 +42,9 @@ public class DishService {
         Pageable pageable = PageRequest.of(0,size);
         return dishRepository.findByTagId(tagId,pageable);
     }
-    public List<Dish> findByDishNameContainingIgnoreCase(String keyword, int size){
-        Pageable pageable = PageRequest.of(0,size);
-        return dishRepository.findByDishNameContainingIgnoreCase(keyword,pageable);
+    public List<Dish> findByDishNameContainingIgnoreCase(String keyword,int page, int size){
+        int offset = (page - 1) * size;
+        return dishRepository.findByDishNameContainingIgnoreCase(keyword, offset, size);
     }
     public List<Dish> findByCategoryDetailId(Long catDetailId,int page, int size){
         int offset = (page - 1) * size;
@@ -54,4 +54,46 @@ public class DishService {
     public int countByCategoryDetailId(Long catDetailId){
         return dishRepository.countByCategoryDetailId(catDetailId);
     }
+    public int countByDishNameContainingIgnoreCase(String keyword){
+        return dishRepository.countByDishNameContainingIgnoreCase(keyword);
+    }
+
+    public List<Dish> findByCookerId(Long id) {
+        return dishRepository.findByCookerId(id);
+    }
+
+    public void deleteById(Long id) {
+        dishRepository.deleteById(id);
+    }
+
+    public Dish save(Dish dish) {
+        return dishRepository.save(dish);
+    }
+
+    public List<Dish> findDishFavorited(Long accountId) {
+        List<Dish> founded = dishRepository.findDishFavorited(accountId);
+        return founded;
+    }
+    public List<Dish> findByFavorite(String role, Long id, int page, int size) {
+        int offset = (page - 1) * size;
+        String roleName = "customer_id";
+        if(role.equalsIgnoreCase("Cooker")){
+            roleName = "Cooker";
+        }else{
+            roleName = "Customer";
+        }
+        List<Dish> founded = dishRepository.findByFavorite(roleName,id, offset, size);
+        return founded;
+    }
+    public int countByFavorite(String role, Long id){
+        String roleName = "customer_id";
+        if(role.equalsIgnoreCase("Cooker")){
+            roleName = "Cooker";
+        }else{
+            roleName = "Customer";
+        }
+        return dishRepository.countByFavorite(roleName, id);
+    }
+
+
 }

@@ -34,6 +34,32 @@ public class ImageIOUtils {
         }
     }
 
+    public void copyImage(String fileNameSource, String fileNameDestination) {
+        try {
+            File sourceFile = new File(IMG_PATH+"/"+fileNameSource+".png");
+            File destinationFile = new File(IMG_PATH+"/"+fileNameDestination+".png");
+
+            // Tạo luồng đọc từ file nguồn
+            InputStream inputStream = new FileInputStream(sourceFile);
+
+            // Tạo luồng ghi vào file đích
+            OutputStream outputStream = new FileOutputStream(destinationFile);
+
+            // Đọc dữ liệu từ luồng đầu vào và ghi vào luồng đầu ra
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = inputStream.read(buffer)) > 0) {
+                outputStream.write(buffer, 0, length);
+            }
+
+            // Đóng luồng
+            inputStream.close();
+            outputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void deleteImage(String fileName){
         try {
             File myObj = new File(IMG_PATH+"/" + fileName + ".png");

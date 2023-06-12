@@ -40,4 +40,8 @@ public class CustomerService {
     public Customer save(Customer customer) {
         return customerRepository.save(customer);
     }
+
+    public List<Customer> findByAccountStatus(String status) {
+        return customerRepository.findByAccountStatus(status);
+    }
 }

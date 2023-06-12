@@ -20,6 +20,10 @@ public class TagService {
         Pageable pageable = PageRequest.of(0,size);
         return tagRepository.findTopTagsByViewed(pageable);
     }
+    public List<Tag> findByDishId(Long dishId){
+        List<Tag> listTag = tagRepository.findByDishId(dishId);
+        return listTag;
+    }
 
     public Tag insert(Tag tag) {
         tag.setId(0l);

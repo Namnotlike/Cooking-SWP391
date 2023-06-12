@@ -7,23 +7,9 @@ import lombok.Data;
 
 @Data
 @Entity
-public class Customer extends User {
-    private Double weight = 0.0;
-    private Double weightExpect= 0.0;
-    private Double height= 0.0;
-    private String city;
-    private String state;
-    private String address;
-
-    @OneToMany(mappedBy = "customer")
-    @JsonBackReference
-    private List<Feedback> feedbacks;
-
+public class Customer extends Member {
     @OneToMany(mappedBy = "customer")
     @JsonBackReference
     private List<Favorite> favorites;
 
-    @OneToMany(mappedBy = "customer")
-    @JsonBackReference
-    private List<Report> reports;
 }

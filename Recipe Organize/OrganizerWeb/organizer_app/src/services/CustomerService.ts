@@ -7,11 +7,34 @@ export const ApiGetCustomerByUsername = async (username: string) => {
     const res = await fetch(Constant.API_GET_CUSTOMER_BY_USERNAME+username);
     if(res.ok){
         const jsonBody: JsonBody = await res.json();
-        return jsonBody.data as Customer;
-    }else{
-        return null;
+        if(jsonBody.code=='01'){
+            return jsonBody.data as Customer;
+        }
     }
+    return null;
 }
+
+export const ApiGetCustomerByStatus = async (accountStatus: string) => {
+    const res = await fetch(Constant.API_GET_CUSTOMER_BY_STATUS+accountStatus);
+    if(res.ok){
+        const jsonBody: JsonBody = await res.json();
+        if(jsonBody.code=='01'){
+            return jsonBody.data as Customer[];
+        }
+    }
+    return null;
+}
+
+export const ApiEditAccountStatusCustomerById = async (id: string,status: string) => {
+    const res = await fetch(Constant.API_EDIT_STATUS_ACCOUNT_CUSTOMER_BY_ID+id+"/"+status);
+    if(res.ok){
+        const jsonBody: JsonBody = await res.json();
+        return jsonBody as JsonBody;
+    }
+    return null;
+};
+
+
 
 export const ApiEditCustomerProfile = async (event: FormEvent<HTMLFormElement>,id: number) => {
     const data = new FormData();

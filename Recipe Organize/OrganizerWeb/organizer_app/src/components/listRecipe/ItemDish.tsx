@@ -7,9 +7,11 @@ import React from "react";
 
 type Params = {
     dish: Dish,
+    editable?: boolean
+    handleClickRemoveFavorite?: (dish: Dish) => void
 }
 
-const ItemDish = ({dish}: Params) => {
+const ItemDish = ({dish, editable, handleClickRemoveFavorite}: Params) => {
 
     const handleClickItem = () => {
         location.href="../dish/"+dish.url+"-"+dish.id;
@@ -17,17 +19,23 @@ const ItemDish = ({dish}: Params) => {
 
     
     return (
-        <div className=" col-12 col-sm-3 my-2 cursor-pointer" onClick={handleClickItem} >
-            {/* <Image src="/materials/item_dish.svg" width={0} height={0} style={{width:'100%',height:'auto'}} alt="Picture of the author" /> */}
-            <LazyLoadImage className="hover_cursor_size" src={IMAGE_PATH+dish.imageUrl+".png"} style={{width:'100%',height:300,borderRadius:20}} alt="Picture of the author"/>
-            <span className="fw-bold f-size-18" >{dish.dishName}</span>
-            <div className="d-flex">
-                <StarRateIcon className='text-warning' sx={{fontSize:24}} />
-                <span>{dish.ratingPoint}</span>
-                <div className="flex-grow-1"></div>
-                <i>By {dish.cookerName}</i>
+        <div className=" col-12 col-sm-3 my-2" >
+            <div className="cursor-pointer" onClick={handleClickItem} >
+                <LazyLoadImage className="hover_cursor_size" src={IMAGE_PATH+dish.imageUrl+".png"} style={{width:'100%',height:260,borderRadius:20}} alt="Picture of the author"/>
+                <span className="fw-bold f-size-18" >{dish.dishName}</span>
+                <div className="d-flex">
+                    <StarRateIcon className='text-warning' sx={{fontSize:24}} />
+                    <span>{dish.ratingPoint}</span>
+                    <div className="flex-grow-1"></div>
+                    <i>By {dish.cookerName}</i>
+                </div>
             </div>
-            
+            {editable && (
+                <div className="d-flex w-100 mt-1">
+                    {/* <button className="btn bg-orange w-50 me-1 hover_bg_green">CUSTOMIZE</button> */}
+                    <button className="btn btn-outline-orange w-100 hover_bg_green" onClick={()=>handleClickRemoveFavorite? handleClickRemoveFavorite(dish) : {}}>REMOVE</button>
+                </div>
+            )}
         </div>
     );
 };

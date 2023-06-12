@@ -1,18 +1,16 @@
 package com.example.OrganizeRecipeApi.controllers;
 
-import com.example.OrganizeRecipeApi.entities.Account;
-import com.example.OrganizeRecipeApi.entities.Cooker;
-import com.example.OrganizeRecipeApi.entities.Customer;
-import com.example.OrganizeRecipeApi.entities.Role;
+import com.example.OrganizeRecipeApi.constant.ACCOUNT_STATUS;
+import com.example.OrganizeRecipeApi.constant.NOTI_TYPE;
+import com.example.OrganizeRecipeApi.constant.ROLE;
+import com.example.OrganizeRecipeApi.entities.*;
 import com.example.OrganizeRecipeApi.jwt.CustomUserDetails;
 import com.example.OrganizeRecipeApi.jwt.JwtTokenProvider;
 import com.example.OrganizeRecipeApi.jwt.LoginResponse;
 import com.example.OrganizeRecipeApi.payload.ResponseHandle;
-import com.example.OrganizeRecipeApi.services.AccountService;
-import com.example.OrganizeRecipeApi.services.CookerService;
-import com.example.OrganizeRecipeApi.services.CustomerService;
-import com.example.OrganizeRecipeApi.services.RoleService;
+import com.example.OrganizeRecipeApi.services.*;
 import com.example.OrganizeRecipeApi.utils.ImageIOUtils;
+import com.example.OrganizeRecipeApi.utils.MailManager;
 import com.example.OrganizeRecipeApi.utils.TextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -45,7 +43,13 @@ public class AccountController {
     @Autowired
     private CustomerService customerService;
     @Autowired
+    private NotificationService notificationService;
+    @Autowired
     private TextUtil textUtil;
+    @Autowired
+    private DigitCodeService digitCodeService;
+    @Autowired
+    private MailManager mailManager;
     /*
     private String fullName;
     private String gender;
@@ -75,14 +79,13 @@ public class AccountController {
         Account account = new Account();
         account.setEmail(email);
         account.setUsername(username);
-
         account.setPassword(passwordEncoder.encode(password));
         Role newRole;
-        if(role.equalsIgnoreCase("COOKER"))
-            newRole = roleService.findByRoleName("Cooker");
-        else  newRole = roleService.findByRoleName("Customer");
+        if(role.equalsIgnoreCase(ROLE.COOKER))
+            newRole = roleService.findByRoleName(ROLE.COOKER);
+        else  newRole = roleService.findByRoleName(ROLE.CUSTOMER);
         account.setRole(newRole);
-        account.setStatus("INACTIVE");
+        account.setStatus(ACCOUNT_STATUS.INACTIVE);
         Account accountRegistered = accountService.insert(account);
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -90,7 +93,7 @@ public class AccountController {
                         password
                 )
         );
-        if(role.equalsIgnoreCase("COOKER")){
+        if(role.equalsIgnoreCase(ROLE.COOKER)){
             Cooker cooker = new Cooker();
             cooker.setFullName(fullName.trim());
             cooker.setGender(gender.trim());
@@ -101,6 +104,7 @@ public class AccountController {
             cooker.setImageUrl(avtName);
             cooker.setAccount(accountRegistered);
             cookerService.insert(cooker);
+
         }else{
             Customer customer = new Customer();
             customer.setFullName(fullName.trim());
@@ -113,6 +117,9 @@ public class AccountController {
             customer.setAccount(accountRegistered);
             customerService.insert(customer);
         }
+        DigitCode digitCodeGenerated = digitCodeService.generateAndSaveDigitCode(accountRegistered.getId());
+        mailManager.notificationEmailVerify(fullName,accountRegistered.getEmail(),digitCodeGenerated.getCode());
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = tokenProvider.generateToken((CustomUserDetails) authentication.getPrincipal());
         accountRegistered.setPassword(null);
@@ -127,10 +134,10 @@ public class AccountController {
             return new ResponseHandle<>("02","Username does not exist");
         if(!passwordEncoder.matches(password,founded.getPassword()))
             return new ResponseHandle<>("02","Username or password incorrect");
-        if(founded.getStatus().equalsIgnoreCase("INACTIVE") && founded.getRole().getRoleName().equalsIgnoreCase("CUSTOMER"))
+        if(founded.getStatus().equalsIgnoreCase(ACCOUNT_STATUS.INACTIVE) && founded.getRole().getRoleName().equalsIgnoreCase("CUSTOMER"))
             return new ResponseHandle<>("03", founded.getEmail());
-        if(!founded.getStatus().equalsIgnoreCase("ACTIVE"))
-            return new ResponseHandle<>("02", "The account has not been activated yet.");
+        if(founded.getStatus().equalsIgnoreCase(ACCOUNT_STATUS.BANNED))
+            return new ResponseHandle<>("02", "The account has been BANNED by ADMIN.");
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         username,
@@ -139,7 +146,7 @@ public class AccountController {
         );
         SecurityContextHolder.getContext().setAuthentication(authentication);
         CustomUserDetails value = (CustomUserDetails) authentication.getPrincipal();
-        System.out.println(value);
+
         String jwt = tokenProvider.generateToken((CustomUserDetails) authentication.getPrincipal());
         founded.setPassword(null);
         LoginResponse loginResponse = new LoginResponse(founded,jwt);
@@ -150,18 +157,17 @@ public class AccountController {
     @PostMapping("/verify")
     private ResponseHandle<LoginResponse> verify(@RequestParam String username,String password, @RequestParam String digitCode){
         Account account = accountService.findByUsername(username);
-        if(!digitCode.equals("123456")){
-            return new ResponseHandle<>("02","Digit code invalid: "+digitCode);
-        }
+
         if(account==null)
             return new ResponseHandle<>("02","Account not found with username: "+username);
-        if(account.getRole().getRoleName().equalsIgnoreCase("CUSTOMER")){
-            account.setStatus("ACTIVE");
-        } else if(account.getRole().getRoleName().equalsIgnoreCase("COOKER")){
-            account.setStatus("WAITING");
-        } else{
-            return new ResponseHandle<>("02","Account role invalid: "+account.getRole().getRoleName());
-        }
+
+        boolean result = digitCodeService.authenticate(digitCode,account.getId());
+        if(!digitCode.equals("123456"))
+            result=true;
+        if(result==false)
+            return new ResponseHandle<>("02","Digit code invalid: "+digitCode);
+
+        account.setStatus(ACCOUNT_STATUS.ACTIVE);
         Account saved = accountService.save(account);
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -174,8 +180,20 @@ public class AccountController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         // Trả về jwt cho người dùng.
         CustomUserDetails value = (CustomUserDetails) authentication.getPrincipal();
-        System.out.println(value);
+
         String jwt = tokenProvider.generateToken((CustomUserDetails) authentication.getPrincipal());
+
+
+        //CREATE NOTIFICATION
+        if(saved.getRole().getRoleName().equalsIgnoreCase(ROLE.COOKER)) {
+            Cooker cooker = cookerService.findByUsername(saved.getUsername());
+            Notification notification = new Notification();
+            notification.setContent(cooker.getFullName() + " just created a Cooker Account, please confirm.");
+            notification.setType(NOTI_TYPE.COOKER_WAIT_ACCEPT);
+            notification.setCreateBy(saved);
+            notification.setOwner(ROLE.EMPLOYEE);
+            notificationService.insert(notification);
+        }
         saved.setPassword(null);
         LoginResponse loginResponse = new LoginResponse(saved,jwt);
         return new ResponseHandle<LoginResponse>(loginResponse);

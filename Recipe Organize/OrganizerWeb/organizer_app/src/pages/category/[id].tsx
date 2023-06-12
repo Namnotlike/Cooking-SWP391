@@ -45,26 +45,22 @@ const Page = ({tagData, categoryData, dishData, page, urlCurrent, totalItem}: Pa
                 </div>
             </div>
             {/* BODY CONTENT */}
+            <h1 className='ms-5 p-0'>Recipes</h1>
             <div className='row'>
                 {/* LEFT CONTENT */}
-                <div  className='d-none d-sm-block col-12 col-sm-3 row p-5'>
+                <div  className='d-none d-sm-block col-12 col-sm-3 row p-5 pt-0'>
                     <LeftBar categories={categoryData} />
                 </div>
                 {/* RIGHT CONTENT */}
-                <div  className='col-12 col-sm-9 p-5'>
+                <div  className='col-12 col-sm-9 p-5 pt-0'>
                     <div className='row'>
                         {dishData.map( (row,index) => (
                              <ItemDish key={index} dish={row} />
                         ))}
-                        {/* <ItemDish />
-                        <ItemDish />
-                        <ItemDish />
-                        <ItemDish />
-                        <ItemDish /> */}
                         <div className='col-12'>
                             <Pagination 
                                 totalItem={totalItem}
-                                itemPerPage={Number.parseInt(Constant.ITEM_PER_PAGE)}
+                                itemPerPage={Constant.ITEM_PER_PAGE}
                                 indexActive={indexActive}
                                 urlCurrent={urlCurrent}
                             />
@@ -84,7 +80,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     const {page, size} = query;
     const mPage = (page as string || "1");
     const mSize = (size as string || Constant.ITEM_PER_PAGE);
-    console.log("mPage: "+mPage);
     const id = (params?.id as string)?.split("-").pop() || "1";
     const tagData = await ApiGetTopViewedTags(10) as Tag[];
     const categoryData = await ApiGetAllCategory() as Category[];

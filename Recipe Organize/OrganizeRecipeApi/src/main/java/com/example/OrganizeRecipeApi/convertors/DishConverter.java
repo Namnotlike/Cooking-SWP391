@@ -33,6 +33,7 @@ public class DishConverter {
         dto.setServings(entity.getServings());
         dto.setUrl(entity.getUrl());
         dto.setNote(entity.getNote());
+        dto.setCategoryDetail(entity.getCategoryDetail());
         dto.setCreateAt(entity.getCreateAt());
         dto.setUpdateAt(entity.getUpdateAt());
         return dto;

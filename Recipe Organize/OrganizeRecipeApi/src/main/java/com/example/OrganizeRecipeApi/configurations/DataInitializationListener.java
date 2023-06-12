@@ -1,10 +1,14 @@
 package com.example.OrganizeRecipeApi.configurations;
 
+import com.example.OrganizeRecipeApi.constant.NOTI_TYPE;
+import com.example.OrganizeRecipeApi.constant.ROLE;
 import com.example.OrganizeRecipeApi.entities.*;
 import com.example.OrganizeRecipeApi.marterials.DishDataTest;
 import com.example.OrganizeRecipeApi.repositories.*;
 import com.example.OrganizeRecipeApi.services.CategoryDetailService;
 import com.example.OrganizeRecipeApi.services.CategoryService;
+import com.example.OrganizeRecipeApi.services.FavoriteService;
+import com.example.OrganizeRecipeApi.services.NotificationService;
 import com.example.OrganizeRecipeApi.utils.TextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -31,7 +35,15 @@ public class DataInitializationListener implements ApplicationListener<Applicati
     @Autowired
     private CookerRepository cookerRepository;
     @Autowired
+    private CustomerRepository customerRepository;
+    @Autowired
+    private EmployeeRepository employeeRepository;
+    @Autowired
     private TagRepository tagRepository;
+    @Autowired
+    private FavoriteService favoriteService;
+    @Autowired
+    private NotificationService notificationService;
     @Autowired
     private TextUtil textUtil;
     @Autowired
@@ -49,8 +61,26 @@ public class DataInitializationListener implements ApplicationListener<Applicati
         insertRoles();
         insertAccounts();
         insertCookers();
+        insertCustomers();
+        insertEmployee();
         insertTags();
         insertDishs();
+        insertFavorites();
+    }
+
+    private void insertFavorites() {
+        if(favoriteService.findAll().size()==0) {
+            for(Long i=1l;i<=10;i++){
+                Favorite favorite = new Favorite();
+                Cooker cooker = new Cooker();
+                cooker.setId(i);
+                Dish dish = new Dish();
+                dish.setId(i);
+                favorite.setCooker(cooker);
+                favorite.setDish(dish);
+                favoriteService.insert(favorite);
+            }
+        }
     }
 
     private void insertCategoryDetails() {
@@ -84,6 +114,40 @@ public class DataInitializationListener implements ApplicationListener<Applicati
             }
         }
     }
+    private void insertCustomers() {
+        if(customerRepository.findAll().size()==0) {
+            String[] dishNames = {"Oliver","Jack","Harry","Jacob","Charlie","Thomas","George","Oscar","James","William"};
+            for(int i = 1 ; i <= 10 ; i++){
+                Customer customer = new Customer();
+                customer.setFullName(dishNames[i-1]);
+                customer.setGender("Male");
+                customer.setDateOfBirth(new Date());
+                customer.setImageUrl("avt_human");
+                customer.setPhone("012345678"+i);
+                customer.setAccount(new Account((long)0+i));
+                customer.setAddress("13, Pasture");
+                customer.setState("California");
+                customer.setCity("New York");
+                customerRepository.save(customer);
+            }
+        }
+    }
+
+    private void insertEmployee() {
+        if(employeeRepository.findAll().size()==0) {
+            String[] dishNames = {"Oliver","Jack","Harry","Jacob","Charlie","Thomas","George","Oscar","James","William"};
+            for(int i = 1 ; i <= 10 ; i++){
+                Employee employee = new Employee();
+                employee.setFullName(dishNames[i-1]);
+                employee.setGender("Male");
+                employee.setDateOfBirth(new Date());
+                employee.setImageUrl("avt_human");
+                employee.setPhone("012345678"+i);
+                employee.setAccount(new Account((long)20+i));
+                employeeRepository.save(employee);
+            }
+        }
+    }
 
     private void insertCookers() {
         if(cookerRepository.findAll().size()==0) {
@@ -93,10 +157,20 @@ public class DataInitializationListener implements ApplicationListener<Applicati
                 cooker.setFullName(dishNames[i-1]);
                 cooker.setGender("Male");
                 cooker.setDateOfBirth(new Date());
-                cooker.setImageUrl("abc.png");
+                cooker.setImageUrl("avt_human");
                 cooker.setPhone("012345678"+i);
                 cooker.setAccount(new Account((long)10+i));
+                cooker.setAddress("13, Pasture");
+                cooker.setState("California");
+                cooker.setCity("New York");
                 cookerRepository.save(cooker);
+
+                Notification notification = new Notification();
+                notification.setContent(cooker.getFullName() + " just created a Cooker Account, please confirm.");
+                notification.setType(NOTI_TYPE.COOKER_WAIT_ACCEPT);
+                notification.setCreateBy(new Account((long)10+i));
+                notification.setOwner(ROLE.EMPLOYEE);
+                notificationService.insert(notification);
             }
         }
     }

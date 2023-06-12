@@ -1,6 +1,5 @@
 package com.example.OrganizeRecipeApi.repositories;
 
-import com.example.OrganizeRecipeApi.entities.MyDish;
 import com.example.OrganizeRecipeApi.entities.Report;
 import org.springframework.data.jpa.repository.JpaRepository;
 

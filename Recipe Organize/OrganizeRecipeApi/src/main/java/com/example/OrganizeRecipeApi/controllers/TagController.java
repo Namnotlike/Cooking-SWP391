@@ -28,11 +28,18 @@ public class TagController {
     @Autowired
     private TextUtil textUtil;
 
+    @CrossOrigin
     @GetMapping("/getAll")
     private ResponseArrayHandle<Tag> getAll(){
         return new ResponseArrayHandle<Tag>(tagService.findAll());
     }
+    @CrossOrigin
+    @GetMapping("/getByDishId/{dishId}")
+    private ResponseArrayHandle<Tag> getByDishId(@PathVariable Long dishId){
+        return new ResponseArrayHandle<Tag>(tagService.findByDishId(dishId));
+    }
 
+    @CrossOrigin
     @PostMapping("/create")
     public ResponseHandle<Tag> create(@RequestParam String tagName){
         Tag tag = new Tag();
@@ -41,6 +48,7 @@ public class TagController {
         return new ResponseHandle<Tag>(tagService.insert(tag));
     }
 
+    @CrossOrigin
     @GetMapping("/getTopViewed")
     public ResponseArrayHandle<Tag> getTopViewed(@RequestParam(required = false,defaultValue = "5") int size){
         List<Tag> listFounded = tagService.findTopTagsByViewed(size);

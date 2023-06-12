@@ -160,20 +160,81 @@ input[type=number] {
   background-color: lightgray !important;
 }
 
-.hover_cursor_green {
+.hover_cursor_orange {
   cursor: pointer;
 }
-.hover_cursor_green:hover {
-  border: none;
-  border-bottom: 2px solid green;
-  color:green;
+.hover_cursor_orange:hover {
+  /* border: none;
+  border-bottom: 2px solid #FF7008;
+  color:#FF7008; */
+  border-radius: 20px;
+  color: #FF7008;
+  background-color: white;
+}
+.btn-outline-orange {
+  background-color: white;
+  border: 1px solid #FF7008;
+  color: #FF7008;
+}
+.btn-outline-orange:hover {
+  background-color: #FF7008;
+  color: white;
+}
+.th-orange {
+  background-color: #FF7008 !important;
+  color: white;
+  border: 2px solid lightgray;
+}
+td {
+  border: 2px solid lightgray;
+}
+tbody {
+  border: 2px solid lightgray;
 }
 .bg-orange {
-  background-color: #FF7008;
+  background-color: #FF7008 !important;
+  color: white;
+}
+.bg-orange:hover {
+  border: 1px solid #FF7008;
+  background-color: white;
+  color: #FF7008;
 }
 .bg-lightgray {
   background-color: rgba(231, 231, 231, 0.929);
 }
+
+.hover_text_green {
+  cursor: pointer;
+}
+.hover_text_green:hover {
+  color:green;
+}
+
+.hover_text_orange {
+  cursor: pointer;
+}
+.hover_text_orange:hover {
+  color: lightgray;
+}
+.hover_bg_green {
+  cursor: pointer;
+}
+.hover_bg_green:hover {
+  background-color:green;
+  border: none;
+  color: white;
+}
+.hs-60 {
+  height: 56px;
+}
+.ws-80 {
+  width: 80px;
+}
+.ws-150 {
+  width: 150px;
+}
+
 .cursor-pointer {
   cursor: pointer;
 }
@@ -209,7 +270,7 @@ input[type=number] {
   color: gray;
 }
 .color-orange {
-  color: orange;
+  color: #FF7008;
 }
 .border-radius-10 {
   border-radius: 10px;

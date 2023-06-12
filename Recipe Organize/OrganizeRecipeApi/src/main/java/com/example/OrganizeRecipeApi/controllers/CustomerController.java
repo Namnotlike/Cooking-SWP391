@@ -1,5 +1,6 @@
 package com.example.OrganizeRecipeApi.controllers;
 
+import com.example.OrganizeRecipeApi.constant.ACCOUNT_STATUS;
 import com.example.OrganizeRecipeApi.entities.Account;
 import com.example.OrganizeRecipeApi.entities.Cooker;
 import com.example.OrganizeRecipeApi.entities.Customer;
@@ -7,6 +8,7 @@ import com.example.OrganizeRecipeApi.entities.Role;
 import com.example.OrganizeRecipeApi.jwt.CustomUserDetails;
 import com.example.OrganizeRecipeApi.jwt.JwtTokenProvider;
 import com.example.OrganizeRecipeApi.jwt.LoginResponse;
+import com.example.OrganizeRecipeApi.payload.ResponseArrayHandle;
 import com.example.OrganizeRecipeApi.payload.ResponseHandle;
 import com.example.OrganizeRecipeApi.services.AccountService;
 import com.example.OrganizeRecipeApi.services.CookerService;
@@ -32,12 +34,33 @@ public class CustomerController {
     private AccountService accountService;
     @Autowired
     private ImageIOUtils imageIOUtils;
+
     @CrossOrigin
     @GetMapping("/getByUsername/{username}")
     public ResponseHandle<Customer> getByUsername(@PathVariable String username){
         Customer founded = customerService.findByUsername(username.trim());
+        if(founded==null)
+            return new ResponseHandle<Customer>("02","Not found customer with username: "+username);
         founded.getAccount().setPassword(null);
         return new ResponseHandle<Customer>(founded);
+    }
+
+    @CrossOrigin
+    @GetMapping("/editAccountStatus/{customerId}/{status}")
+    public ResponseHandle<Customer> banCustomer(@PathVariable Long customerId,@PathVariable String status){
+        Customer founded = customerService.findById(customerId);
+        if(founded==null)
+            return new ResponseHandle<>("02","Not found customer with id: "+customerId);
+        if(!status.equals(ACCOUNT_STATUS.BANNED) && !status.equals(ACCOUNT_STATUS.ACTIVE))
+            return new ResponseHandle<>("02","Status invalid: "+status);
+        founded.getAccount().setStatus(status);
+        return new ResponseHandle<Customer>(customerService.save(founded));
+    }
+
+    @CrossOrigin
+    @GetMapping("/getByAccountStatus/{status}")
+    public ResponseArrayHandle<Customer> getByAccountStatus(@PathVariable String status){
+        return new ResponseArrayHandle<Customer>(customerService.findByAccountStatus(status));
     }
 
     @CrossOrigin
