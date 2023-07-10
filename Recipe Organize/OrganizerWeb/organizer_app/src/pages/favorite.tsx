@@ -1,6 +1,5 @@
 import LayoutMaster from "@/components/LayoutMaster";
 import EditProfileContent from "@/components/profile/EditProfileContent";
-import LeftBarProfile from "@/components/profile/LeftBarProfile";
 import { ApiGetCookerByUsername } from "@/services/CookerService";
 import { ApiGetCustomerByUsername } from "@/services/CustomerService";
 import { ApiGetDishByFavorite } from "@/services/DishService";
@@ -11,6 +10,7 @@ import ItemDish from "@/components/listRecipe/ItemDish";
 import Pagination from "@/components/listRecipe/Pagination";
 import React from "react";
 import { ApiAddOrRemoveFavorite } from "@/services/FavoriteService";
+import LeftBarProfile from "@/components/profile/LeftBarProfile";
 type Params = {
     customerData?: Customer,
     cookerData?: Cooker,

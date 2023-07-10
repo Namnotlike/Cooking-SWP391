@@ -23,6 +23,48 @@ export const ApiVerifyEmail = async (username: string, password: string, digitCo
     }
 }
 
+export const ApiForgotSendEmail = async (email: string) => {
+    const data = new FormData();
+    data.append("email",email);
+    const res = await fetch(Constant.API_FORGOT_SEND_EMAIL,{
+        method: "POST",
+        body: data
+    });
+    if(res.ok){
+        const jsonBody: JsonBody = await res.json();
+        return jsonBody as JsonBody;
+    }
+}
+
+export const ApiForgotVerifyDigit = async (email: string, digitCode: string) => {
+    const data = new FormData();
+    data.append("email",email);
+    data.append("digitCode",digitCode);
+    const res = await fetch(Constant.API_FORGOT_VERIFY,{
+        method: "POST",
+        body: data
+    });
+    if(res.ok){
+        const jsonBody: JsonBody = await res.json();
+        return jsonBody as JsonBody;
+    }
+}
+
+
+export const ApiForgotNewPassword = async (email: string, password: string) => {
+    const data = new FormData();
+    data.append("email",email);
+    data.append("password",password);
+    const res = await fetch(Constant.API_FORGOT_NEW_PASSWORD,{
+        method: "POST",
+        body: data
+    });
+    if(res.ok){
+        const jsonBody: JsonBody = await res.json();
+        return jsonBody as JsonBody;
+    }
+}
+
 export const ApiLogin = async (username: string, password: string) => {
     const data = new FormData();
     data.append("username",username);

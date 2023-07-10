@@ -5,7 +5,7 @@ import TinyEditor from "@/pluggins/tiny_editor";
 import { ApiGetCookerByUsername } from "@/services/CookerService";
 import { ApiGetCustomerByUsername } from "@/services/CustomerService";
 import { ApiCreateDish, ApiDeleteDish, ApiGetDishByFavorite, ApiUpdateDish } from "@/services/DishService";
-import { CategoryDetail, Cooker, Customer, Dish, Favorite, JsonBody, Tag, UserInfoCookie } from "@/types";
+import { CategoryDetail, Cooker, Customer, Dish, DishSubmit, Favorite, JsonBody, Tag, UserInfoCookie } from "@/types";
 import { Chip } from "@mui/material";
 import { GetServerSideProps } from "next";
 import React, { FormEvent } from "react";
@@ -21,6 +21,7 @@ import * as Constant from "@/common/constant";
 import { ApiDeleteCustomize, ApiSubmitCustomize } from "@/services/CustomizeService";
 import { ApiGetFavoriteByAccountId } from "@/services/FavoriteService";
 import TableCustomize from "@/components/TableCustomize";
+import ShowDialog from "@/components/ShowDialog";
 type Params = {
     cookerData: Cooker,
     userCookie: UserInfoCookie,
@@ -42,38 +43,76 @@ const Page = ({cookerData, favoriteData, userCookie, favoritePageData}:Params) =
     const [cookTime, setCookTime] = React.useState<string | undefined>(selectedTable?.dish.cookTime+"");
     const [servings, setServings] = React.useState<string | undefined>(selectedTable?.dish.servings+"");
     const [note, setNote] = React.useState(selectedTable?.dish.note);
+    const [dishSubmit, setDishSubmit] = React.useState<DishSubmit | null>(null);
+
+
+    const [openDialog, setOpenDialog] = React.useState(false);
+    const handleOpenDialog = () => setOpenDialog(true);
+    const handleCloseDialog = () => setOpenDialog(false);
+    const [messageDialog, setMessageDialog] = React.useState("");
+    const [titleDialog, setTileDialog] = React.useState("");
+    const [typeDialog, setTypeDialog] = React.useState("");
+    const [openDialogConfirm, setOpenDialogConfirm] = React.useState(false);
+    const handleOpenDialogConfirm = () => setOpenDialogConfirm(true);
+    const handleCloseDialogConfirm = () => setOpenDialogConfirm(false);
+    const handleClickYes = async () => {
+        if(clickedButton=="SUBMIT" && dishSubmit!=null){
+            const result = await ApiSubmitCustomize(dishSubmit,processContent,ingredientContent,userCookie.userInfo.id+"") as JsonBody; 
+            if(result!=null){
+                if(result.code=='01'){
+                    setFavoriteTable(result.data);
+                    setMessageDialog("Customize Dish successfully!");
+                    setTileDialog("Notice");
+                    setTypeDialog('info')
+                    handleOpenDialog();
+                    return;
+                }
+            }
+            setMessageDialog("Customize Dish failed!");
+            setTileDialog("Notice");
+            setTypeDialog('error')
+            handleOpenDialog();
+            
+        } else if(clickedButton=="RESTORE" && dishSubmit!=null){
+            const result = await ApiDeleteCustomize(dishSubmit,userCookie.userInfo.id+"") as JsonBody; 
+            if(result!=null){
+                if(result.code=='01'){
+                    setFavoriteTable(result.data);
+                    setMessageDialog("Customize restore successfully!");
+                    setTileDialog("Notice");
+                    setTypeDialog('info')
+                    handleOpenDialog();
+                    return;
+                }
+            }
+            setMessageDialog("Customize restore failed!");
+            setTileDialog("Notice");
+            setTypeDialog('error')
+            handleOpenDialog();
+        }
+    }
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        const dishSubmit: DishSubmit = {
+            description: event.currentTarget.description.value.trim(),
+            process: processContent.trim(),
+            ingredient: ingredientContent.trim(),
+            prepTime: event.currentTarget.prepTime.value.trim(),
+            cookTime: event.currentTarget.cookTime.value.trim(),
+            servings: event.currentTarget.servings.value.trim(),
+            note: event.currentTarget.note.value.trim(),
+            idSelected: event.currentTarget.idSelected.value.trim(),
+          };
+        setDishSubmit(dishSubmit);
         if(clickedButton=="SUBMIT"){
-            if(!confirm("Do you want to customize this recipe?"))
-                return;
-            const result = await ApiSubmitCustomize(event,processContent,ingredientContent,userCookie.userInfo.id+"") as JsonBody; 
-            if(result!=null){
-                if(result.code=='01'){
-                    setFavoriteTable(result.data);
-                    alert("Customize Dish successfully!");
-                }else{
-                    alert(result.message);
-                }
-            }else{
-                alert("Customize Dish failed!")
-            }
+            setMessageDialog("Do you want to customize this recipe?");
         }else if(clickedButton=="RESTORE"){
-            if(!confirm("Do you want to restore this recipe?"))
-                return;
-            const result = await ApiDeleteCustomize(event,userCookie.userInfo.id+"") as JsonBody; 
-            if(result!=null){
-                if(result.code=='01'){
-                    setFavoriteTable(result.data);
-                    alert("Customize restore successfully!");
-                }else{
-                    alert(result.message);
-                }
-            }else{
-                alert("Customize restore failed!")
-            }
+            setMessageDialog("Do you want to restore this recipe?");
         }
+        setTypeDialog("info");
+        setTileDialog("Notice");
+        handleOpenDialogConfirm();
     }
 
     const handleProcessChange = (content:string) => {
@@ -194,6 +233,24 @@ const Page = ({cookerData, favoriteData, userCookie, favoritePageData}:Params) =
                         </div>
                 </div>
             </div>
+            <ShowDialog 
+                content={messageDialog}
+                title={titleDialog}
+                type={typeDialog}
+                buttonOk={true}
+                open={openDialog}
+                setOpen={setOpenDialog}
+            />
+
+            <ShowDialog 
+                content={messageDialog}
+                title={titleDialog}
+                type={typeDialog}
+                buttonYesNo={true}
+                handleClickYes={handleClickYes}
+                open={openDialogConfirm}
+                setOpen={setOpenDialogConfirm}
+            />
         </LayoutMaster>
     );
 };

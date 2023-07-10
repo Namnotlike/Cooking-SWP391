@@ -4,7 +4,7 @@ import { Dish } from "@/types";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import { IMAGE_PATH } from "@/common/constant";
 import React from "react";
-
+import Link from 'next/link'
 type Params = {
     dish: Dish,
     editable?: boolean
@@ -12,24 +12,21 @@ type Params = {
 }
 
 const ItemDish = ({dish, editable, handleClickRemoveFavorite}: Params) => {
-
-    const handleClickItem = () => {
-        location.href="../dish/"+dish.url+"-"+dish.id;
-    }
-
     
     return (
         <div className=" col-12 col-sm-3 my-2" >
-            <div className="cursor-pointer" onClick={handleClickItem} >
-                <LazyLoadImage className="hover_cursor_size" src={IMAGE_PATH+dish.imageUrl+".png"} style={{width:'100%',height:260,borderRadius:20}} alt="Picture of the author"/>
-                <span className="fw-bold f-size-18" >{dish.dishName}</span>
-                <div className="d-flex">
-                    <StarRateIcon className='text-warning' sx={{fontSize:24}} />
-                    <span>{dish.ratingPoint}</span>
-                    <div className="flex-grow-1"></div>
-                    <i>By {dish.cookerName}</i>
+            <Link scroll={true} href={"../dish/"+dish.url+"-"+dish.id}>
+                <div className="cursor-pointer">
+                    <LazyLoadImage className="hover_cursor_size img-fit" src={IMAGE_PATH+dish.imageUrl+".png"} style={{width:'100%',height:260,borderRadius:20}} alt="Picture of the author"/>
+                    <span className="fw-bold f-size-18" >{dish.dishName}</span>
+                    <div className="d-flex">
+                        <StarRateIcon className='text-warning' sx={{fontSize:24}} />
+                        <span>{dish.ratingPoint}</span>
+                        <div className="flex-grow-1"></div>
+                        <i>By {dish.cookerName}</i>
+                    </div>
                 </div>
-            </div>
+            </Link>
             {editable && (
                 <div className="d-flex w-100 mt-1">
                     {/* <button className="btn bg-orange w-50 me-1 hover_bg_green">CUSTOMIZE</button> */}

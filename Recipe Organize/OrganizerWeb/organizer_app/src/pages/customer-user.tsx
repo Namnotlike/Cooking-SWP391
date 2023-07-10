@@ -1,6 +1,5 @@
 import LayoutMaster from "@/components/LayoutMaster";
 import EditProfileContent from "@/components/profile/EditProfileContent";
-import LeftBarProfile from "@/components/profile/LeftBarProfile";
 import TinyEditor from "@/pluggins/tiny_editor";
 import { ApiAcceptCookerById, ApiEditAccountStatusCookerById, ApiGetCookerByStatus, ApiGetCookerByUsername } from "@/services/CookerService";
 import { ApiEditAccountStatusCustomerById, ApiGetCustomerByStatus, ApiGetCustomerByUsername } from "@/services/CustomerService";
@@ -22,11 +21,13 @@ import { ApiDeleteCustomize, ApiSubmitCustomize } from "@/services/CustomizeServ
 import { ApiGetFavoriteByAccountId } from "@/services/FavoriteService";
 import TableCustomize from "@/components/TableCustomize";
 import TableUser from "@/components/TableUser";
+import LeftBarProfile from "@/components/profile/LeftBarProfile";
 type Params = {
+    userCookie: UserInfoCookie,
     cookerData: Cooker[],
     cookerPageData: Cooker[],
 }
-const Page = ({cookerData, cookerPageData}:Params) => {
+const Page = ({userCookie, cookerData, cookerPageData}:Params) => {
     const [totalItem,setTotalItem] = React.useState(cookerData && cookerData.length || 0);
     const [object,setObject] = React.useState("1");
     const [status,setStatus] = React.useState("1");
@@ -71,7 +72,7 @@ const Page = ({cookerData, cookerPageData}:Params) => {
                 setCustomerPag([]);
                 setTotalItem(data && data.length || 0);
                 setCookers(data);
-                setCookers(data && data.slice(0,Constant.ITEM_PER_PAGE_TABLE));
+                setCookerPag(data && data.slice(0,Constant.ITEM_PER_PAGE_TABLE));
                 resetInfo();
             }else if(object=="1" && status=="3"){
                 const data = await ApiGetCookerByStatus("BANNED",true);
@@ -79,15 +80,15 @@ const Page = ({cookerData, cookerPageData}:Params) => {
                 setCustomerPag([]);
                 setTotalItem(data && data.length || 0);
                 setCookers(data);
-                setCookers(data && data.slice(0,Constant.ITEM_PER_PAGE_TABLE));
+                setCookerPag(data && data.slice(0,Constant.ITEM_PER_PAGE_TABLE));
                 resetInfo();
             }else if(object=="2" && status=="1"){
                 const data = await ApiGetCookerByStatus("ACTIVE",false);
                 setCustomers([]);
                 setCustomerPag([]);
                 setTotalItem(data && data.length || 0);
-                setCookerPag(data && data.slice(0,Constant.ITEM_PER_PAGE_TABLE));
                 setCookers(data);
+                setCookerPag(data && data.slice(0,Constant.ITEM_PER_PAGE_TABLE));
                 resetInfo();
             }else if(object=="3" && status=="1"){
                 const data = await ApiGetCustomerByStatus("ACTIVE");
@@ -162,7 +163,7 @@ const Page = ({cookerData, cookerPageData}:Params) => {
         }
         const resultConfirm = confirm("Are you sure to accept this cooker?");
         if(resultConfirm){
-            const  result = await ApiAcceptCookerById(selectedId+"") as JsonBody;
+            const  result = await ApiAcceptCookerById(userCookie.userInfo.username,selectedId+"") as JsonBody;
             if(result){
                 if(result.code=='01'){
                     setSelectedId(-1);
@@ -190,7 +191,7 @@ const Page = ({cookerData, cookerPageData}:Params) => {
             var result = null as any;
             if(object=="3")
                 result = await ApiEditAccountStatusCustomerById(selectedId+"","BANNED") as JsonBody;
-            else result = await ApiEditAccountStatusCookerById(selectedId+"","BANNED") as JsonBody;
+            else result = await ApiEditAccountStatusCookerById(userCookie.userInfo.username,selectedId+"","BANNED") as JsonBody;
             if(result){
                 if(result.code=='01'){
                     setSelectedId(-1);
@@ -207,7 +208,6 @@ const Page = ({cookerData, cookerPageData}:Params) => {
     }
 
     const handleChangePage = (page: number) => {
-        console.log('page: '+page);
         const skip = (page-1)*Constant.ITEM_PER_PAGE_TABLE;
         var end = skip+Constant.ITEM_PER_PAGE_TABLE;
         if(customers && customers.length>0){
@@ -227,9 +227,6 @@ const Page = ({cookerData, cookerPageData}:Params) => {
           for(let i = skip; i < end; i++){
             newCookers.push(cookers[i]);
           }
-          console.log('skip: '+skip);
-          console.log('end: '+end);
-          console.log(newCookers);
           setCookerPag(newCookers);
         }
     }
@@ -248,7 +245,7 @@ const Page = ({cookerData, cookerPageData}:Params) => {
             var result = null as any;
             if(object=="3")
                 result = await ApiEditAccountStatusCustomerById(selectedId+"","ACTIVE") as JsonBody;
-            else result = await ApiEditAccountStatusCookerById(selectedId+"","ACTIVE") as JsonBody;
+            else result = await ApiEditAccountStatusCookerById(userCookie.userInfo.username,selectedId+"","ACTIVE") as JsonBody;
             if(result){
                 if(result.code=='01'){
                     setSelectedId(-1);
@@ -271,7 +268,7 @@ const Page = ({cookerData, cookerPageData}:Params) => {
                     <div className="col-3">
                         <LeftBarProfile cookerActive={false} itemActive={5}/>
                     </div>
-                    <div className="pe-5 col-9 py-3 mt-3">
+                    <div className="pe-5 col-9 py-3 mt-5">
                         <div>
                             <h1 className="color-orange text-start">CUSTOMER & COOKER</h1>
                             <div className="row">
@@ -366,6 +363,7 @@ export const getServerSideProps: GetServerSideProps = async(context) => {
     const cookerData = await ApiGetCookerByStatus("ACTIVE",true) as Cooker[];
     const cookerPageData = cookerData && cookerData.slice(0,Constant.ITEM_PER_PAGE_TABLE);
     return { props: { 
+        userCookie,
         cookerData,
         cookerPageData
     } };

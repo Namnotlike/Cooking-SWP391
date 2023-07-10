@@ -1,5 +1,6 @@
 import { CategoryDetail } from '@/types';
 import AddIcon from '@mui/icons-material/Add';
+import Link from 'next/link';
 import React from 'react';
 type Params = {
     label: string,
@@ -18,7 +19,7 @@ const Collapse = ({label, categoryDetails}: Params) => {
             {show && (
                 <div className='ps-5'>
                     {categoryDetails && categoryDetails.map((row,index)=>(
-                        <p key={index} className='fw-bold f-size-18'><a href={"../category/"+row.url+"-"+row.id} className='hover_cursor_orange' style={{textDecoration:'none'}}>{row.name}</a></p>
+                        <p key={index} className='fw-bold f-size-18'><Link href={"/category/"+row.url+"-"+row.id} className='hover_cursor_orange' style={{textDecoration:'none'}}>{row.name}</Link></p>
                     ))}
                 </div>
             )}

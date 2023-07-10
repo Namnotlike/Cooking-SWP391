@@ -22,6 +22,7 @@ export interface Customer {
     imageUrl: string,
     weight: number,
     weightExpect: number,
+    mealPlanning: Dish[],
     height: number,
     account: Account,
     city: string,
@@ -35,6 +36,16 @@ export interface UserInfoCookie{
     accessToken: string,
     tokenType: string,
     userInfo: Account
+}
+
+export interface Report {
+    id: number,
+    description: string,
+    reason: string,
+    dish: Dish,
+    account: Account,
+    createAt: Date,
+    updateAt: Date,
 }
 
 export interface Notification {
@@ -79,7 +90,9 @@ export interface Cooker {
     state: string,
     address: string,
     status: boolean,
+    rank: string,
     dishs: Dish[],
+    dishCount: number,
     createAt: Date,
     updateAt: Date,
 }
@@ -119,6 +132,25 @@ export interface Favorite {
     updateAt: Date,
 };
 
+export interface Feedback {
+    id: number,
+    ratingPoint: number,
+    dish: Dish,
+    ownerName: string,
+    ownerAvt: string,
+    cookerId: number,
+    customer: Customer,
+    cooker: Cooker,
+    feedBackContent: string,
+    createAt: Date,
+    updateAt: Date,
+};
+
+export interface MonthView {
+    value: number,
+    legend: string
+}
+
 export interface Customize {
     id: number,
     process: string,
@@ -149,6 +181,14 @@ export interface Category {
     createAt: Date,
     updateAt: Date,
 };
+export interface RatingRecipe {
+    id: number,
+    ratingPoint: number,
+    accountId: number,
+    dishId: number,
+    createAt: Date,
+    updateAt: Date,
+};
 export interface Dish {
     id: number,
     dishName: string,
@@ -159,6 +199,10 @@ export interface Dish {
     totalCalorie: number,
     ratingPoint: number,
     cookerName: string,
+    cookerId: number,
+    cookerRank: string,
+    mealTime: string,
+    status: string,
     description: string,
     url: string,
     prepTime: number,
@@ -172,6 +216,16 @@ export interface Dish {
     updateAt: Date
 };
 
+export interface DishSubmit {
+    description: string,
+    process: string,
+    ingredient: string,
+    prepTime: string,
+    cookTime: string,
+    servings: string,
+    note: string,
+    idSelected: string,
+};
 export interface Feedback {
     id: number,
     feedBackContent: string,

@@ -6,14 +6,18 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.example.OrganizeRecipeApi.constant.DishStatus;
+import com.example.OrganizeRecipeApi.constant.MealTime;
 import com.fasterxml.jackson.annotation.*;
 
 import javax.persistence.*;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Data
 @Entity
+@NoArgsConstructor
 public class Dish extends BaseEntity{
     @Column(columnDefinition = "nvarchar(255)")
     private String dishName;
@@ -27,6 +31,8 @@ public class Dish extends BaseEntity{
     private String url;
     private Integer viewed = 0;
     private String imageUrl;
+    private String mealTime = MealTime.ALL;
+    private String status = DishStatus.INACTIVE;
     private Integer totalCalorie;
     private Double ratingPoint = 5.0;
     private Integer prepTime = 0;
@@ -65,6 +71,11 @@ public class Dish extends BaseEntity{
     @JsonManagedReference
     private CategoryDetail categoryDetail;
 
+    @ManyToOne
+    @JoinColumn(name = "customer_id")
+    @JsonManagedReference
+    private Customer customer;
+
     /*
      * Customized
      */
@@ -87,6 +98,11 @@ public class Dish extends BaseEntity{
             }
         }
     }
+    public Dish(Long id){
+        this.setId(id);
+    }
+
+
     @Override
     public String toString() {
         return "Dish{" +

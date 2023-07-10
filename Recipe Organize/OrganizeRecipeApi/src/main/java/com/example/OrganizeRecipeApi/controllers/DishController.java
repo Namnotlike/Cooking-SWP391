@@ -1,10 +1,10 @@
 package com.example.OrganizeRecipeApi.controllers;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.example.OrganizeRecipeApi.constant.NOTI_TYPE;
-import com.example.OrganizeRecipeApi.constant.ROLE;
+import com.example.OrganizeRecipeApi.constant.*;
 import com.example.OrganizeRecipeApi.convertors.DishConverter;
 import com.example.OrganizeRecipeApi.dtos.DishDTO;
 import com.example.OrganizeRecipeApi.entities.*;
@@ -40,7 +40,12 @@ public class DishController {
     private TextUtil textUtil;
     @Autowired
     private NotificationService notificationService;
-
+    @Autowired
+    private CategoryDetailService categoryDetailService;
+    @Autowired
+    private CustomerService customerService;
+    @Autowired
+    private ViewStatisticService viewStatisticService;
     @CrossOrigin
     @PostMapping("/create")
     public ResponseHandle<Dish> create(
@@ -106,7 +111,7 @@ public class DishController {
         //CREATE NOTIFICATION
         Notification notification = new Notification();
         notification.setContent(cooker.getFullName()+" just posted a new recipe.");
-        notification.setType(NOTI_TYPE.COOKER_UP_NEW_RECIPE);
+        notification.setType(NotificationType.COOKER_UP_NEW_RECIPE);
         notification.setCreateBy(cooker.getAccount());
         notification.setOwner(ROLE.ADMIN);
         notificationService.insert(notification);
@@ -193,10 +198,163 @@ public class DishController {
     }
 
     @CrossOrigin
+    @GetMapping("/updateViewed/{dishId}")
+    public ResponseHandle<DishDTO> updateViewed(@PathVariable Long dishId){
+        Dish founded = dishService.findById(dishId);
+        if(founded==null)
+            return new ResponseHandle<>("02","Not found dish with id: "+dishId);
+        founded.setViewed(founded.getViewed()+1);
+
+        LocalDate localDate = LocalDate.now();
+        int year = localDate.getYear();
+        int month = localDate.getMonthValue();
+        int day = localDate.getDayOfMonth();
+
+        ViewStatistic viewStatistic = viewStatisticService.findByYearMonthDay(year, month, day);
+        if(viewStatistic==null)
+            return new ResponseHandle<>("02","Not found viewStatistic");
+        viewStatistic.setViewed(viewStatistic.getViewed()+1);
+        viewStatisticService.save(viewStatistic);
+
+        return new ResponseHandle<DishDTO>(dishConverter.toDTO(dishService.save(founded)));
+    }
+
+
+    @CrossOrigin
     @GetMapping("/getTopViewed")
-    public ResponseArrayHandle<DishDTO> getTopViewed(@RequestParam(required = false,defaultValue = "5") int size){
+    public ResponseArrayHandle<DishDTO> getTopViewed(@RequestParam(required = false,defaultValue = "3") int size){
         List<Dish> listFounded = dishService.findTopDishesByViewed(size);
         return new ResponseArrayHandle<DishDTO>(dishConverter.toArrayDTO(listFounded));
+    }
+
+    @CrossOrigin
+    @GetMapping("/getByTagPaging/{tagId}")
+    public ResponseArrayHandlePagination<DishDTO> getByTagPaging(
+            @PathVariable Long tagId,
+            @RequestParam(required = false,defaultValue = "1") int page,
+            @RequestParam(required = false,defaultValue = "5") int size
+    ){
+        if(page<1) page=1;
+        if(size<1) size=1;
+        List<Dish> listFounded = dishService.findByTagId(tagId,page,size);
+        ResponseArrayHandlePagination<DishDTO> res = new ResponseArrayHandlePagination<DishDTO>(dishConverter.toArrayDTO(listFounded));
+        res.setTotalItem(dishService.countByTagId(tagId));
+        return res;
+    }
+
+    @CrossOrigin
+    @PostMapping("/getDishRandByMealTime/{calories}/{mealTime}")
+    public ResponseHandle<DishDTO> getDishRandByMealTime(
+            @PathVariable int calories,
+            @PathVariable String mealTime,
+            @RequestParam(required = false) List<Integer> idExist
+    ) {
+        if(idExist==null){
+            idExist = new ArrayList<>();
+            idExist.add(0);
+        }
+        Dish dish = dishService.findRandomByMealTimeNotExist(mealTime,calories,idExist);
+        return new ResponseHandle<DishDTO>(dishConverter.toDTO(dish));
+    }
+
+    @CrossOrigin
+    @PutMapping("/updateMealPlanning/{customerId}")
+    public ResponseHandle<Customer> updateMealPlanning(
+            @PathVariable Long customerId,
+            @RequestParam(required = false) List<Integer> listDishId
+    )
+    {
+        if(listDishId==null)
+            listDishId = new ArrayList<>();
+        Customer customer = customerService.findById(customerId);
+        if(customer==null)
+            return new ResponseHandle<>("02","Not found customer with id: "+customerId);
+        customer.getMealPlanning().clear();
+        for(int i : listDishId){
+            Dish dish = new Dish((long)i);
+            customer.getMealPlanning().add(dish);
+        }
+        return new ResponseHandle<Customer>(customerService.save(customer));
+    }
+
+    @CrossOrigin
+    @GetMapping("/getDishFullMealsByCalories/{calories}")
+    public ResponseArrayHandle<DishDTO> getDishByCalories(
+            @PathVariable int calories
+        ){
+        try {
+            int totalCalories = calories;
+            boolean flagStop = false;
+            List<Dish> listDish = new ArrayList<>();
+            Dish dish = null;
+            while (!flagStop) {
+                boolean flagAdd = false;
+                dish = null;
+                dish = dishService.findRandomByMealTime(MealTime.BREAKFAST, totalCalories);
+                if (dish != null && totalCalories - dish.getTotalCalorie() > 0) {
+                    dish.setMealTime(MealTime.BREAKFAST);
+                    listDish.add(dish);
+                    totalCalories -= dish.getTotalCalorie();
+                    flagAdd = true;
+                }
+                dish = null;
+                dish = dishService.findRandomByMealTime(MealTime.LUNCH, totalCalories);
+                if (dish != null && totalCalories - dish.getTotalCalorie() > 0) {
+                    dish.setMealTime(MealTime.LUNCH);
+                    listDish.add(dish);
+                    totalCalories -= dish.getTotalCalorie();
+                    flagAdd = true;
+                }
+                dish = null;
+                dish = dishService.findRandomByMealTime(MealTime.DINNER, totalCalories);
+                if (dish != null && totalCalories - dish.getTotalCalorie() > 0) {
+                    dish.setMealTime(MealTime.DINNER);
+                    listDish.add(dish);
+                    totalCalories -= dish.getTotalCalorie();
+                    flagAdd = true;
+                }
+                if (flagAdd == false) // Can not add more item
+                    flagStop = true;
+            }
+            return new ResponseArrayHandle<DishDTO>(dishConverter.toArrayDTO(listDish));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return new ResponseArrayHandle<DishDTO>("02","Error");
+    }
+
+    @CrossOrigin
+    @GetMapping("/getDishByMealTime/{mealTime}/{calories}")
+    public ResponseArrayHandle<DishDTO> getDishByMealTime(
+            @PathVariable String mealTime,
+            @PathVariable int calories
+    ){
+        try {
+            List<Dish> listDish = new ArrayList<>();
+            if (!mealTime.equals(MealTime.BREAKFAST) && !mealTime.equals(MealTime.LUNCH) && !mealTime.equals(MealTime.DINNER))
+                return new ResponseArrayHandle<>("02", "Meal time invalid");
+            int totalCalories = calories;
+            boolean flagStop = false;
+
+            Dish dish = null;
+            while (!flagStop) {
+                boolean flagAdd = false;
+                dish = null;
+                dish = dishService.findRandomByMealTimeNotAll(mealTime, totalCalories);
+                if (dish != null && totalCalories - dish.getTotalCalorie() > 0) {
+                    dish.setMealTime(mealTime);
+                    listDish.add(dish);
+                    totalCalories -= dish.getTotalCalorie();
+                    flagAdd = true;
+                }
+                if (flagAdd == false) // Can not add more item
+                    flagStop = true;
+            }
+            return new ResponseArrayHandle<DishDTO>(dishConverter.toArrayDTO(listDish));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @CrossOrigin
@@ -215,6 +373,80 @@ public class DishController {
         return response;
     }
 
+    @CrossOrigin
+    @GetMapping("/getByStatusPaging/{status}")
+    public ResponseArrayHandlePagination<DishDTO> getByStatusPaging(
+            @PathVariable String status,
+            @RequestParam(required = false,defaultValue = "1") int page,
+            @RequestParam(required = false,defaultValue = "5") int size
+    ){
+        if(page<1) page=1;
+        if(size<1) size=1;
+        if(!status.equals(DishStatus.ACTIVE) && !status.equals(DishStatus.INACTIVE) && !status.equals(DishStatus.BANNED))
+            return new ResponseArrayHandlePagination<>("02","Status invalid: "+status);
+        List<Dish> listDish = dishService.findByStatusPaging(status, page, size);
+        ResponseArrayHandlePagination<DishDTO> res = new ResponseArrayHandlePagination<DishDTO>(dishConverter.toArrayDTO(listDish));
+        res.setTotalItem(dishService.countByStatusPaging(status));
+        return res;
+    }
+
+
+    @CrossOrigin
+    @GetMapping("/updateStatus")
+    public ResponseHandle<DishDTO> updateStatus(@RequestParam String username, @RequestParam Long dishId, @RequestParam String status){
+        Dish founded = dishService.findById(dishId);
+        if(founded==null)
+            return new ResponseHandle<>("02","Not found Dish with id: "+dishId);
+        if(!status.equals(DishStatus.ACTIVE) && !status.equals(DishStatus.INACTIVE) && !status.equals(DishStatus.BANNED))
+            return new ResponseHandle<>("02","Status invalid: "+status);
+        Account accountEmp = accountService.findByUsername(username);
+        if(accountEmp==null)
+            return new ResponseHandle<>("02","Not found Employee with username: "+username);
+
+        founded.setStatus(status);
+
+        Notification notification = new Notification();
+        notification.setContent("Admin" + " just change status of "+founded.getDishName()+" to "+status+", please confirm.");
+        notification.setType(NotificationType.UPDATE_DISH_STATUS);
+        notification.setCreateBy(accountEmp);
+        notification.setCreateTo(founded.getCooker().getAccount());
+        notification.setOwner(ROLE.COOKER);
+
+        notificationService.insert(notification);
+
+
+        return new ResponseHandle<DishDTO>(dishConverter.toDTO(dishService.save(founded)));
+    }
+
+    @CrossOrigin
+    @GetMapping("/getTopViewByCategory/{categoryId}")
+    public ResponseArrayHandlePagination<DishDTO> getTopViewByCategory(
+            @PathVariable Long categoryId,
+            @RequestParam(required = false,defaultValue = "1") int page,
+            @RequestParam(required = false,defaultValue = "5") int size
+    ){
+        if(page<1) page=1;
+        if(size<1) size=1;
+        List<Dish> listFounded = dishService.findTopViewByCategory(categoryId, page, size);
+        ResponseArrayHandlePagination<DishDTO> res = new ResponseArrayHandlePagination<DishDTO>(dishConverter.toArrayDTO(listFounded));
+        res.setTotalItem(dishService.countByCategoryDetailId(categoryId));
+        return res;
+    }
+    @CrossOrigin
+    @GetMapping("/getTopRatingByCategory/{categoryId}")
+    public ResponseArrayHandlePagination<DishDTO> getTopRatingByCategory(
+            @PathVariable Long categoryId,
+            @RequestParam(required = false,defaultValue = "1") int page,
+            @RequestParam(required = false,defaultValue = "5") int size
+    ){
+        if(page<1) page=1;
+        if(size<1) size=1;
+        List<Dish> listFounded = dishService.findTopRatingByCategory(categoryId, page, size);
+        ResponseArrayHandlePagination<DishDTO> res = new ResponseArrayHandlePagination<DishDTO>(dishConverter.toArrayDTO(listFounded));
+        res.setTotalItem(dishService.countByCategoryDetailId(categoryId));
+        return res;
+    }
+
 
     @CrossOrigin
     @GetMapping("/getTopNewed")
@@ -223,29 +455,43 @@ public class DishController {
         return new ResponseArrayHandle<DishDTO>(dishConverter.toArrayDTO(listFounded));
     }
 
-    @CrossOrigin
-    @GetMapping("/getByTagId/{id}")
-    public ResponseArrayHandle<DishDTO> getByTagId(@PathVariable Long id,@RequestParam(required = false,defaultValue = "5") int size){
-        List<Dish> listFounded = dishService.findByTagId(id,size);
-        return new ResponseArrayHandle<DishDTO>(dishConverter.toArrayDTO(listFounded));
-    }
 
     @CrossOrigin
     @GetMapping("/getByCookerId/{id}")
     public ResponseArrayHandle<Dish> getByCookerId(@PathVariable Long id){
         List<Dish> listFounded = dishService.findByCookerId(id);
-        for(Dish item : listFounded)
-            System.out.println(item.toString());
         ResponseArrayHandle<Dish> res = new ResponseArrayHandle<Dish>(listFounded);
         return res;
     }
-    /*
-     List<DishDTO> dtos = dishConverter.toArrayDTO(listFounded);
-        for(DishDTO item : dtos)
-            System.out.println(item.toString()); List<DishDTO> dtos = dishConverter.toArrayDTO(listFounded);
-        for(DishDTO item : dtos)
-            System.out.println(item.toString());
-     */
+
+    @CrossOrigin
+    @GetMapping("/getAllPaging")
+    public ResponseArrayHandlePagination<DishDTO> getAllPaging(
+            @RequestParam(required = false,defaultValue = "1") int page,
+            @RequestParam(required = false,defaultValue = "5") int size) {
+        if(page<1) page=1;
+        if(size<1) size=1;
+        List<Dish> listFounded = dishService.findAllPaging(page,size);
+        ResponseArrayHandlePagination<DishDTO> res = new ResponseArrayHandlePagination<DishDTO>(dishConverter.toArrayDTO(listFounded));
+        res.setTotalItem(dishService.countAllPaging());
+        return res;
+    }
+
+    @CrossOrigin
+    @GetMapping("/getByCookerIdPaging/{id}")
+    public ResponseArrayHandlePagination<DishDTO> getByCookerIdPaging(
+            @PathVariable Long id,
+            @RequestParam(required = false,defaultValue = "1") int page,
+            @RequestParam(required = false,defaultValue = "5") int size) {
+        if(cookerService.findById(id)==null)
+            return new ResponseArrayHandlePagination<>("02","Not found cooker with id: "+id);
+        if(page<1) page=1;
+        if(size<1) size=1;
+        List<Dish> listFounded = dishService.findByCookerIdPaging(id,page,size);
+        ResponseArrayHandlePagination<DishDTO> res = new ResponseArrayHandlePagination<DishDTO>(dishConverter.toArrayDTO(listFounded));
+        res.setTotalItem(dishService.countByCookerId(id));
+        return res;
+    }
 
     @CrossOrigin
     @GetMapping("/getByCategoryId/{id}")
@@ -254,6 +500,8 @@ public class DishController {
             page=1;
         if(size<1)
             size=1;
+        if(categoryDetailService.findById(id)==null)
+            return new ResponseArrayHandlePagination<>("02","Not found category with id: "+id);
         List<Dish> listFounded = dishService.findByCategoryDetailId(id,page,size);
         ResponseArrayHandlePagination response = new ResponseArrayHandlePagination<DishDTO>(dishConverter.toArrayDTO(listFounded));
         response.setTotalItem(dishService.countByCategoryDetailId(id));

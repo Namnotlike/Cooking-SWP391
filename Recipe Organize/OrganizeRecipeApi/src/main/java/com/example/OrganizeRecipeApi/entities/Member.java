@@ -11,9 +11,9 @@ import java.util.List;
 @Data
 @MappedSuperclass
 public class Member extends User{
-    private Double weight = 0.0;
+    private int weight = 0;
     private Double weightExpect= 0.0;
-    private Double height= 0.0;
+    private int height= 0;
     @Column(columnDefinition = "nvarchar(max)")
     private String city;
     @Column(columnDefinition = "nvarchar(max)")
@@ -25,9 +25,7 @@ public class Member extends User{
     @JsonBackReference
     private List<Feedback> feedbacks;
 
-    @OneToMany(mappedBy = "customer")
-    @JsonBackReference
-    private List<Report> reports;
+
 
 
 }

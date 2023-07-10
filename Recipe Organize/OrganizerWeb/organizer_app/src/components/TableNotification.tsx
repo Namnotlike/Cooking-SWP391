@@ -40,7 +40,7 @@ const TableNotification = ({notifications, handleClickRowTable,handleChangePage,
             <tr key={index} style={{backgroundColor: indexSelected == index && 'lightyellow' || 'white'}} onClick={()=>handleClickRow(row,index)}>
               <th scope="row">{row.id}</th>
               <td>{row.content}</td>
-              <td>{row.createBy.username}</td>
+              <td>{row.createBy && row.createBy.username || "" }</td>
               <td>{DatetimeUtils.formatDate(row.createAt)}</td>
               <td>{row.status}</td>
             </tr>

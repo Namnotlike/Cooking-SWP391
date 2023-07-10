@@ -16,4 +16,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     @Query(value = "SELECT n.* FROM notification n WHERE n.owner = :owner AND n.status = :status ORDER BY create_at DESC",nativeQuery = true)
     List<Notification> findByOwnerAndStatus(String owner, String status);
+
+    @Query(value = "SELECT n.* FROM notification n JOIN Account a on a.id = n.account_to_id WHERE a.username = :username ORDER BY n.create_at DESC",nativeQuery = true)
+    List<Notification> findByUsername(String username);
 }

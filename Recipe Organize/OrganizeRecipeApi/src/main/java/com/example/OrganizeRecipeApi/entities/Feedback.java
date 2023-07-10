@@ -9,7 +9,10 @@ import lombok.Data;
 @Entity
 public class Feedback extends BaseEntity{
     private String feedBackContent;
-    private Integer ratingPoint = 0;
+
+    @OneToOne
+    @JoinColumn(name = "rating_recipe_id")
+    private RatingRecipe ratingRecipe;
 
     @ManyToOne
     @JoinColumn(name = "dish_id")
@@ -20,4 +23,9 @@ public class Feedback extends BaseEntity{
     @JoinColumn(name = "customer_id")
     @JsonManagedReference
     private Customer customer;
+
+    @ManyToOne
+    @JoinColumn(name = "cooker_id")
+    @JsonManagedReference
+    private Cooker cooker;
 }

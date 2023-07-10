@@ -20,4 +20,16 @@ public class FeedbackService {
         feedback.setId(0l);
         return feedbackRepository.save(feedback);
     }
+
+    public List<Feedback> findAll(){
+        return feedbackRepository.findAll();
+    }
+
+    public List<Feedback> findByDishId(Long id){
+        return feedbackRepository.findByDishId(id);
+    }
+
+    public Feedback save(Feedback item) {
+        return feedbackRepository.save(item);
+    }
 }

@@ -12,7 +12,9 @@ import { useCookies } from "react-cookie";
 import path from "path";
 import { JsonBody } from "@/types";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useRouter } from "next/router";
 const Page = () => {
+    const router = useRouter();
     const [cookies, setCookie, removeCookie] = useCookies(['userVerify']);
     const [selectedImage,setSelectedImage] = React.useState("");
     const handleClickUpload = () => {
@@ -49,7 +51,7 @@ const Page = () => {
                 <div className="d-none d-sm-none d-md-none d-lg-block col-sm-6 text-center">
                     <div className="d-flex align-items-center h-100 w-100" style={{position:'relative'}}>
                         <Image src="/materials/bg_login_left.svg" width={0} height={0} style={{position:'absolute',top:0,left:0,width:'100%',height:'auto'}} alt="Picture of the author" />
-                        <div className="d-flex align-items-center hover_text_green" style={{position:'absolute',top:30,left:30}} onClick={()=>{location.href="../login"}}>
+                        <div className="d-flex align-items-center hover_text_green" style={{position:'absolute',top:30,left:30}} onClick={()=>{router.push("/login");}}>
                             <ArrowBackIcon />
                             <span className="ms-2">Back to login page</span>
                         </div>

@@ -3,6 +3,22 @@ import { Customer, JsonBody, LoginResponse } from "@/types";
 import { FormEvent } from "react";
 import { Form } from "react-bootstrap";
 
+export const ApiUpdateHeightWeight = async (username: string, weight: number, height: number) => {
+    const data = new FormData();
+    data.append('weight',weight+"");
+    data.append('height',height+"");
+    data.append('username',username);
+    const res = await fetch(Constant.API_UPDATE_CUSTOMER_HEIGHT_WEIGHT,{
+        method:'POST',
+        body: data
+    });
+    if(res.ok){
+        const jsonBody: JsonBody = await res.json();
+        return jsonBody as JsonBody;
+    }
+    return null;
+}
+
 export const ApiGetCustomerByUsername = async (username: string) => {
     const res = await fetch(Constant.API_GET_CUSTOMER_BY_USERNAME+username);
     if(res.ok){

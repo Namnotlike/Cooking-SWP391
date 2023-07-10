@@ -59,6 +59,27 @@ public class MailManager {
         }).start();
     }
 
+    public void notificationEmailForgotVerify(String fullName,String toEmail,String digitCode) {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        SimpleDateFormat sdfTime = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
+        DecimalFormat df = new DecimalFormat("###,###");
+        String sendTo = toEmail;
+        String sendTitle = "["+ADMIN_NAME+"] Requires forgot password verify #";
+        String sendText = readFileHtml("verify_email.html");
+        //SET INFO
+        sendText = sendText.replace("{userEmail}",fullName);
+        sendText = sendText.replace("{digitCode}",digitCode);
+
+
+        String finalSendText = sendText;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                sendEmail(sendTo, finalSendText,sendTitle);
+            }
+        }).start();
+    }
+
     private String readFileHtml(String fileName){
         String PATH = "html_email/"+fileName;
         try {

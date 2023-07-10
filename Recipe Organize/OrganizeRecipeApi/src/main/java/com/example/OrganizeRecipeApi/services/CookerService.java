@@ -1,5 +1,7 @@
 package com.example.OrganizeRecipeApi.services;
 
+import com.example.OrganizeRecipeApi.convertors.CookerConverter;
+import com.example.OrganizeRecipeApi.dtos.CookerDTO;
 import com.example.OrganizeRecipeApi.entities.Cooker;
 import com.example.OrganizeRecipeApi.entities.Customer;
 import com.example.OrganizeRecipeApi.entities.Dish;
@@ -18,10 +20,16 @@ import java.util.Optional;
 public class CookerService {
     @Autowired
     private CookerRepository cookerRepository;
+    @Autowired
+    private CookerConverter cookerConverter;
 
-    public List<Cooker> findByCookerName(String keyword,int page,int size){
+    public int sumViewed(Long cookerId){
+        return cookerRepository.sumViewed(cookerId);
+    }
+
+    public List<CookerDTO> findByCookerName(String keyword,int page,int size){
         int offset = (page - 1) * size;
-        return cookerRepository.findByCookerName(keyword,offset,size);
+        return cookerConverter.objectToArrayDTO(cookerRepository.findByCookerName(keyword,offset,size));
     }
 
     public Cooker insert(Cooker cooker){
@@ -56,5 +64,10 @@ public class CookerService {
     public List<Cooker> findByStatus(String accountStatus, boolean status){
         List<Cooker> founded = cookerRepository.findByStatus(accountStatus,status);
         return founded;
+    }
+
+    public List<CookerDTO> findByDishCountDesc(int page, int size){
+        int offset = (page - 1) * size;
+        return cookerConverter.objectToArrayDTO(cookerRepository.findByDishCountDesc(offset,size));
     }
 }

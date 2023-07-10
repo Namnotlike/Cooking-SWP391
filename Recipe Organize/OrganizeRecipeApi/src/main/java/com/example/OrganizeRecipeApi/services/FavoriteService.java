@@ -18,6 +18,9 @@ public class FavoriteService {
     @Autowired
     private FavoriteRepository favoriteRepository;
 
+    public Integer countCookerFavorite(Long cookerId){
+        return favoriteRepository.countCookerFavorite(cookerId);
+    }
 
 
     public Favorite insert(Favorite favorite) {

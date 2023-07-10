@@ -169,7 +169,10 @@ const EditProfileContent = ({customer, cooker, employee}: Params) => {
                     </div>
                 </div>
                 <input type="file" id="fileAvt" hidden className="form-control" onChange={(event: React.ChangeEvent<HTMLInputElement>)=>handleChangeImage(event)}/>
-                <Button type="submit" className="bg-orange f-size-18 mt-4" style={{inlineSize:160}} >SAVE</Button>
+                <div className="d-flex">
+                    <Button type="submit" className="bg-orange f-size-18 mt-4 me-3" style={{inlineSize:160}} >SAVE</Button>
+                    <button type="button" className="btn btn-outline-orange f-size-18 mt-4" >CHANGE PASSWORD</button>
+                </div>
             </form>
         </div>
     );

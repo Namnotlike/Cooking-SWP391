@@ -1,5 +1,6 @@
 package com.example.OrganizeRecipeApi.dtos;
 
+import com.example.OrganizeRecipeApi.constant.DishStatus;
 import com.example.OrganizeRecipeApi.entities.CategoryDetail;
 import com.example.OrganizeRecipeApi.entities.Feedback;
 import com.example.OrganizeRecipeApi.entities.Tag;
@@ -20,8 +21,12 @@ public class DishDTO extends BaseDTO{
     private String ingredient;
     private Integer viewed;
     private String imageUrl;
+    private String MealTime;
     private Integer totalCalorie;
     private Double ratingPoint;
+    private String status = DishStatus.INACTIVE;
+    private Long cookerId;
+    private String cookerRank;
     private String cookerName;
     private String url;
     private Integer prepTime;

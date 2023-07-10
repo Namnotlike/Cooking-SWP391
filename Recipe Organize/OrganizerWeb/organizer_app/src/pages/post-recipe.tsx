@@ -18,6 +18,7 @@ import TableCustom from "@/components/TableCustom";
 import { IMAGE_PATH } from "@/common/constant";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import * as Constant from "@/common/constant";
+import ShowDialog from "@/components/ShowDialog";
 
 type Params = {
     listTagData: Tag[],
@@ -47,6 +48,13 @@ const Page = ({listTagData,listCategoryDetailData, cookerData, dishPagData}:Para
     const [servings, setServings] = React.useState<string | undefined>(selectedTable?.servings+"");
     const [note, setNote] = React.useState(selectedTable?.note);
 
+    const [openDialog, setOpenDialog] = React.useState(false);
+    const handleOpenDialog = () => setOpenDialog(true);
+    const handleCloseDialog = () => setOpenDialog(false);
+    const [messageDialog, setMessageDialog] = React.useState("");
+    const [titleDialog, setTileDialog] = React.useState("");
+    const [typeDialog, setTypeDialog] = React.useState("");
+
     const handleSubmitCRUD = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if(clickedButton=="CREATE"){
@@ -54,33 +62,67 @@ const Page = ({listTagData,listCategoryDetailData, cookerData, dishPagData}:Para
             if(result!=null){
                 if(result.code=='01'){
                     setDishTable((dishTable)=>([...dishTable,result.data]));
-                    alert("Create Dish successfully!");
+                    setMessageDialog("Create Dish successfully!");
+                    setTileDialog("Notice");
+                    setTypeDialog('info')
+                    handleOpenDialog();
                 }else{
                     alert(result.message);
                 }
             }else{
-                alert("Create Dish failed!")
+                setMessageDialog("Create Dish failed!");
+                setTileDialog("Notice");
+                setTypeDialog('error')
+                handleOpenDialog();
             }
         }else if(clickedButton=="EDIT"){
             const result = await ApiUpdateDish(event,processContent,ingredientContent,cookerData.id,tagAdd) as JsonBody; 
             if(result!=null){
-                setDishTable((dishTable) => dishTable.filter((dish) => dish.id != result.data.id));
-                setDishTable((dishTable)=>([...dishTable,result.data]));
-                alert("Edit Dish successfully!");
+                const array = [] as Dish[];
+                for(let i = 0 ; i < dishTable.length; i++){
+                    if(dishTable[i].id!=result.data.id){
+                        array.push(dishTable[i]);
+                    }else{
+                        array.push(result.data);
+                    }
+                }
+                setDishTable(array);
+                const arrayPag = [] as Dish[];
+                for(let i = 0 ; i < dishTablePag.length; i++){
+                    if(dishTablePag[i].id!=result.data.id){
+                        arrayPag.push(dishTablePag[i]);
+                    }else{
+                        arrayPag.push(result.data);
+                    }
+                }
+                setDishTablePag(arrayPag);
+                setMessageDialog("Edit Dish successfully!");
+                setTileDialog("Notice");
+                setTypeDialog('info')
+                handleOpenDialog();
             }else{
-                alert("Edit Dish failed!");
+                setMessageDialog("Edit Dish failed!");
+                setTileDialog("Notice");
+                setTypeDialog('error')
+                handleOpenDialog();
             }
         }else if(clickedButton=="DELETE"){
             const result = await ApiDeleteDish(event) as JsonBody; 
             if(result!=null){
                 if(result.code=='01'){
                     setDishTable((dishTable) => dishTable.filter((dish) => dish.id != result.data));
-                    alert("Delete Dish successfully!");
+                    setMessageDialog("Delete Dish successfully!");
+                    setTileDialog("Notice");
+                    setTypeDialog('info')
+                    handleOpenDialog();
                 }else{
                     alert(result.message);
                 }
             }else{
-                alert("Delete Dish failed!");
+                setMessageDialog("Delete Dish failed!");
+                setTileDialog("Notice");
+                setTypeDialog('info')
+                handleOpenDialog();
             }
         }
     }
@@ -275,6 +317,14 @@ const Page = ({listTagData,listCategoryDetailData, cookerData, dishPagData}:Para
                         </div>
                 </div>
             </div>
+            <ShowDialog 
+                content={messageDialog}
+                title={titleDialog}
+                type={typeDialog}
+                buttonOk={true}
+                open={openDialog}
+                setOpen={setOpenDialog}
+            />
         </LayoutMaster>
     );
 };

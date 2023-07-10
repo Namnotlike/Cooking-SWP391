@@ -20,8 +20,15 @@ export const ApiGetNotificationByOwnerAndStatus = async (owner: string,status: s
     }
 };
 
+export const ApiGetNotificationByUsername = async (username: string) => {
+    const res = await fetch(Constant.API_GET_NOTIFICATION_BY_USERNAME+username);
+    if(res.ok){
+        const jsonBody: JsonBody = await res.json();
+        return jsonBody.data as Notification[];
+    }
+};
+
 export const ApiUpdateStatusNotification = async (id: string,status: string) => {
-    console.log(Constant.API_UPDATE_STATUS_NOTIFICATION_BY_ID+id+"/"+status);
     const res = await fetch(Constant.API_UPDATE_STATUS_NOTIFICATION_BY_ID+id+"/"+status,{
         method: 'PUT'
     });

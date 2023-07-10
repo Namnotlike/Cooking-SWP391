@@ -17,4 +17,6 @@ public class FeedbackDTO extends BaseDTO {
     private Integer ratingPoint = 0;
     private String ownerName;
     private String ownerAvt;
+
+    private Long cookerId;
 }

@@ -38,4 +38,8 @@ public class NotificationService {
     public Notification save(Notification founded) {
         return notificationRepository.save(founded);
     }
+
+    public List<Notification> findByUsername(String username) {
+        return notificationRepository.findByUsername(username);
+    }
 }

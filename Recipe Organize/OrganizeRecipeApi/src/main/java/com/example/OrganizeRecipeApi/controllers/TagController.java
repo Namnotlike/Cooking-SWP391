@@ -33,11 +33,13 @@ public class TagController {
     private ResponseArrayHandle<Tag> getAll(){
         return new ResponseArrayHandle<Tag>(tagService.findAll());
     }
+
     @CrossOrigin
     @GetMapping("/getByDishId/{dishId}")
     private ResponseArrayHandle<Tag> getByDishId(@PathVariable Long dishId){
         return new ResponseArrayHandle<Tag>(tagService.findByDishId(dishId));
     }
+
 
     @CrossOrigin
     @PostMapping("/create")

@@ -8,7 +8,8 @@ import lombok.Data;
 @Entity
 public class Report extends BaseEntity{
     private String description;
-    private Integer reportLevel;
+
+    private String reason;
 
     @ManyToOne
     @JoinColumn(name = "dish_id")
@@ -16,7 +17,7 @@ public class Report extends BaseEntity{
     private Dish dish;
 
     @ManyToOne
-    @JoinColumn(name = "customer_id")
+    @JoinColumn(name = "account_id")
     @JsonManagedReference
-    private Customer customer;
+    private Account account;
 }

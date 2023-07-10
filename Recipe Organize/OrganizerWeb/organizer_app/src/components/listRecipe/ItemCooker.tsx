@@ -4,6 +4,7 @@ import { Cooker, Dish } from "@/types";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import { IMAGE_PATH } from "@/common/constant";
 import React from "react";
+import CookerRankIcon from "../CookerRankIcon";
 
 type Params = {
     cooker: Cooker,
@@ -16,8 +17,8 @@ const ItemDish = ({cooker}: Params) => {
                 <div className="d-flex justify-content-center">
                     <LazyLoadImage className="hover_cursor_size img-fit" src={IMAGE_PATH+cooker.imageUrl+".png"} style={{width:260,height:260,borderRadius:'50%'}} alt="Picture of the author"/>
                 </div>
-                <p className="fw-bold f-size-18 text-center" >{cooker.fullName}</p>
-                <p className="text-center">Recipes ({cooker.dishs.length})</p>
+                <p className="fw-bold f-size-18 text-center" >{cooker.fullName} <CookerRankIcon rank={cooker.rank} /></p>
+                <p className="text-center">Recipes ({cooker.dishCount})</p>
             </div>
         </div>
     );

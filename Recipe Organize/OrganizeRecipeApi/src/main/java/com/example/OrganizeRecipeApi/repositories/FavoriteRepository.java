@@ -19,4 +19,7 @@ public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
 
     @Query(value = "SELECT f.* FROM favorite f WHERE f.dish_id = :dishId",nativeQuery = true)
     List<Favorite> findByDishId(Long dishId);
+
+    @Query(value = "SELECT COUNT(*) from cooker c JOIN dish d ON c.id = d.cooker_id JOIN favorite f ON f.dish_id = d.id where c.id = :cookerId",nativeQuery = true)
+    Integer countCookerFavorite(Long cookerId);
 }

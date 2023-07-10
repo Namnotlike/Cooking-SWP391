@@ -1,12 +1,12 @@
 import LayoutMaster from "@/components/LayoutMaster";
 import TableNotification from "@/components/TableNotification";
-import LeftBarProfile from "@/components/profile/LeftBarProfile";
 import { ApiGetNotificationByOwner, ApiGetNotificationByOwnerAndStatus, ApiUpdateStatusNotification } from "@/services/NotificationService";
 import { JsonBody, Notification, UserInfoCookie } from "@/types";
 import { GetServerSideProps } from "next";
 import React, { ChangeEvent } from "react";
 import * as DatetimeUtils from "@/utils/DatetimeUtils";
 import * as Constant from "@/common/constant";
+import LeftBarProfile from "@/components/profile/LeftBarProfile";
 
 type Params = {
     notificationData: Notification[],

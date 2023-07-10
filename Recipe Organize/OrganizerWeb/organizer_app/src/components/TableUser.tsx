@@ -17,7 +17,6 @@ const TableUser = ({cookers, customers, handleClickRowTable, handleChangePage, t
   const [indexSelected,setIndexSelected] = React.useState(-1);
   const handleClickRow = (row: any,index: number) => {
     setIndexSelected(index);
-    // console.log(row);
     handleClickRowTable(row);
   }
   const handleChangePageMid = (page: number) => {

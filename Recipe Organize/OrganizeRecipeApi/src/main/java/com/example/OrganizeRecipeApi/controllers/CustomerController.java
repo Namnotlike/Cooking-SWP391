@@ -1,6 +1,6 @@
 package com.example.OrganizeRecipeApi.controllers;
 
-import com.example.OrganizeRecipeApi.constant.ACCOUNT_STATUS;
+import com.example.OrganizeRecipeApi.constant.AccountStatus;
 import com.example.OrganizeRecipeApi.entities.Account;
 import com.example.OrganizeRecipeApi.entities.Cooker;
 import com.example.OrganizeRecipeApi.entities.Customer;
@@ -46,12 +46,33 @@ public class CustomerController {
     }
 
     @CrossOrigin
+    @PostMapping("/updateHeightWeight")
+    public ResponseHandle<Customer> updateHeightWeight(
+            @RequestParam String username,
+            @RequestParam int weight,
+            @RequestParam int height
+    ){
+        Customer customerSaved = null;
+        try {
+            Customer founded = customerService.findByUsername(username.trim());
+            if (founded == null)
+                return new ResponseHandle<Customer>("02", "Not found customer with username: " + username);
+            founded.setWeight(weight);
+            founded.setHeight(height);
+            customerSaved = customerService.save(founded);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return new ResponseHandle<Customer>(customerSaved);
+    }
+
+    @CrossOrigin
     @GetMapping("/editAccountStatus/{customerId}/{status}")
     public ResponseHandle<Customer> banCustomer(@PathVariable Long customerId,@PathVariable String status){
         Customer founded = customerService.findById(customerId);
         if(founded==null)
             return new ResponseHandle<>("02","Not found customer with id: "+customerId);
-        if(!status.equals(ACCOUNT_STATUS.BANNED) && !status.equals(ACCOUNT_STATUS.ACTIVE))
+        if(!status.equals(AccountStatus.BANNED) && !status.equals(AccountStatus.ACTIVE))
             return new ResponseHandle<>("02","Status invalid: "+status);
         founded.getAccount().setStatus(status);
         return new ResponseHandle<Customer>(customerService.save(founded));

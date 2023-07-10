@@ -1,6 +1,6 @@
 package com.example.OrganizeRecipeApi.controllers;
 
-import com.example.OrganizeRecipeApi.constant.NOTI_STATUS;
+import com.example.OrganizeRecipeApi.constant.NotificationStatus;
 import com.example.OrganizeRecipeApi.entities.Notification;
 import com.example.OrganizeRecipeApi.payload.ResponseArrayHandle;
 import com.example.OrganizeRecipeApi.payload.ResponseHandle;
@@ -16,6 +16,8 @@ import java.util.List;
 public class NotificationController {
     @Autowired
     private NotificationService notificationService;
+
+    @CrossOrigin
     @GetMapping("/getByOwner/{owner}")
     public ResponseArrayHandle<Notification> getByOwner(@PathVariable String owner){
         List<Notification> list = new ArrayList<>();
@@ -27,9 +29,17 @@ public class NotificationController {
         return new ResponseArrayHandle<>(list);
     }
 
+    @CrossOrigin
     @GetMapping("/getByOwner/{owner}/status/{status}")
     public ResponseArrayHandle<Notification> getByOwner(@PathVariable String owner,@PathVariable String status){
         List<Notification>  list = notificationService.findByOwnerAndStatus(owner,status);
+        return new ResponseArrayHandle<>(list);
+    }
+
+    @CrossOrigin
+    @GetMapping("/getByUsername/{username}")
+    public ResponseArrayHandle<Notification> getByUsername(@PathVariable String username){
+        List<Notification>  list = notificationService.findByUsername(username);
         return new ResponseArrayHandle<>(list);
     }
 
@@ -39,7 +49,7 @@ public class NotificationController {
         Notification founded = notificationService.findById(id);
         if(founded==null)
             return new ResponseHandle<>("02","Not found notification with id: "+id);
-        if(!status.equals(NOTI_STATUS.OPEN) && !status.equals(NOTI_STATUS.PROCESS) && !status.equals(NOTI_STATUS.RESOLVE))
+        if(!status.equals(NotificationStatus.OPEN) && !status.equals(NotificationStatus.PROCESS) && !status.equals(NotificationStatus.RESOLVE))
             return new ResponseHandle<>("02","Status invalid");
         founded.setStatus(status);
         return new ResponseHandle<>(notificationService.save(founded));

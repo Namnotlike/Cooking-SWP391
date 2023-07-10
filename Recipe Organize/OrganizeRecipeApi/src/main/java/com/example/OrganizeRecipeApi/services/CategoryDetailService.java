@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CategoryDetailService {
@@ -21,5 +22,12 @@ public class CategoryDetailService {
     public CategoryDetail insert(CategoryDetail categoryDetail) {
         categoryDetail.setId(0l);
         return categoryDetailRepository.save(categoryDetail);
+    }
+
+    public CategoryDetail findById(Long id) {
+        Optional<CategoryDetail> opt = categoryDetailRepository.findById(id);
+        if(opt.isPresent())
+            return opt.get();
+        return null;
     }
 }

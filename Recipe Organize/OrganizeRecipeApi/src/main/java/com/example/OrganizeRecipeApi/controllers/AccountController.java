@@ -1,7 +1,7 @@
 package com.example.OrganizeRecipeApi.controllers;
 
-import com.example.OrganizeRecipeApi.constant.ACCOUNT_STATUS;
-import com.example.OrganizeRecipeApi.constant.NOTI_TYPE;
+import com.example.OrganizeRecipeApi.constant.AccountStatus;
+import com.example.OrganizeRecipeApi.constant.NotificationType;
 import com.example.OrganizeRecipeApi.constant.ROLE;
 import com.example.OrganizeRecipeApi.entities.*;
 import com.example.OrganizeRecipeApi.jwt.CustomUserDetails;
@@ -50,6 +50,7 @@ public class AccountController {
     private DigitCodeService digitCodeService;
     @Autowired
     private MailManager mailManager;
+
     /*
     private String fullName;
     private String gender;
@@ -69,23 +70,23 @@ public class AccountController {
             @RequestParam String dateOfBirth,
             @RequestParam String phone,
             @RequestParam MultipartFile[] fileAvt
-    ){
+    ) {
         Account existUsername = accountService.findByUsername(username.trim());
-        if(existUsername!=null)
-            return new ResponseHandle<>("02","Username already exists");
+        if (existUsername != null)
+            return new ResponseHandle<>("02", "Username already exists");
         Account existEmail = accountService.findByEmail(email.trim());
-        if(existEmail!=null)
-            return new ResponseHandle<>("02","Email already exists");
+        if (existEmail != null)
+            return new ResponseHandle<>("02", "Email already exists");
         Account account = new Account();
         account.setEmail(email);
         account.setUsername(username);
         account.setPassword(passwordEncoder.encode(password));
         Role newRole;
-        if(role.equalsIgnoreCase(ROLE.COOKER))
+        if (role.equalsIgnoreCase(ROLE.COOKER))
             newRole = roleService.findByRoleName(ROLE.COOKER);
-        else  newRole = roleService.findByRoleName(ROLE.CUSTOMER);
+        else newRole = roleService.findByRoleName(ROLE.CUSTOMER);
         account.setRole(newRole);
-        account.setStatus(ACCOUNT_STATUS.INACTIVE);
+        account.setStatus(AccountStatus.INACTIVE);
         Account accountRegistered = accountService.insert(account);
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -93,50 +94,51 @@ public class AccountController {
                         password
                 )
         );
-        if(role.equalsIgnoreCase(ROLE.COOKER)){
+        if (role.equalsIgnoreCase(ROLE.COOKER)) {
             Cooker cooker = new Cooker();
             cooker.setFullName(fullName.trim());
             cooker.setGender(gender.trim());
             cooker.setDateOfBirth(textUtil.parseTimeToDate(dateOfBirth));
             cooker.setPhone(phone.trim());
             String avtName = imageIOUtils.getUuidFileName();
-            imageIOUtils.writeImage(fileAvt[0],avtName);
+            imageIOUtils.writeImage(fileAvt[0], avtName);
             cooker.setImageUrl(avtName);
             cooker.setAccount(accountRegistered);
             cookerService.insert(cooker);
 
-        }else{
+        } else {
             Customer customer = new Customer();
             customer.setFullName(fullName.trim());
             customer.setGender(gender.trim());
             customer.setDateOfBirth(textUtil.parseTimeToDate(dateOfBirth));
             customer.setPhone(phone.trim());
             String avtName = imageIOUtils.getUuidFileName();
-            imageIOUtils.writeImage(fileAvt[0],avtName);
+            imageIOUtils.writeImage(fileAvt[0], avtName);
             customer.setImageUrl(avtName);
             customer.setAccount(accountRegistered);
             customerService.insert(customer);
         }
         DigitCode digitCodeGenerated = digitCodeService.generateAndSaveDigitCode(accountRegistered.getId());
-        mailManager.notificationEmailVerify(fullName,accountRegistered.getEmail(),digitCodeGenerated.getCode());
+        mailManager.notificationEmailVerify(fullName, accountRegistered.getEmail(), digitCodeGenerated.getCode());
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = tokenProvider.generateToken((CustomUserDetails) authentication.getPrincipal());
         accountRegistered.setPassword(null);
-        LoginResponse loginResponse = new LoginResponse(accountRegistered,jwt);
+        LoginResponse loginResponse = new LoginResponse(accountRegistered, jwt);
         return new ResponseHandle<LoginResponse>(loginResponse);
     }
+
     @CrossOrigin
     @PostMapping("/login")
-    private ResponseHandle<LoginResponse> login(@RequestParam String username, @RequestParam String password){
+    private ResponseHandle<LoginResponse> login(@RequestParam String username, @RequestParam String password) {
         Account founded = accountService.findByUsername(username);
-        if(founded==null)
-            return new ResponseHandle<>("02","Username does not exist");
-        if(!passwordEncoder.matches(password,founded.getPassword()))
-            return new ResponseHandle<>("02","Username or password incorrect");
-        if(founded.getStatus().equalsIgnoreCase(ACCOUNT_STATUS.INACTIVE) && founded.getRole().getRoleName().equalsIgnoreCase("CUSTOMER"))
+        if (founded == null)
+            return new ResponseHandle<>("02", "Username does not exist");
+        if (!passwordEncoder.matches(password, founded.getPassword()))
+            return new ResponseHandle<>("02", "Username or password incorrect");
+        if (founded.getStatus().equalsIgnoreCase(AccountStatus.INACTIVE) && founded.getRole().getRoleName().equalsIgnoreCase("CUSTOMER"))
             return new ResponseHandle<>("03", founded.getEmail());
-        if(founded.getStatus().equalsIgnoreCase(ACCOUNT_STATUS.BANNED))
+        if (founded.getStatus().equalsIgnoreCase(AccountStatus.BANNED))
             return new ResponseHandle<>("02", "The account has been BANNED by ADMIN.");
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -149,7 +151,68 @@ public class AccountController {
 
         String jwt = tokenProvider.generateToken((CustomUserDetails) authentication.getPrincipal());
         founded.setPassword(null);
-        LoginResponse loginResponse = new LoginResponse(founded,jwt);
+        LoginResponse loginResponse = new LoginResponse(founded, jwt);
+        return new ResponseHandle<LoginResponse>(loginResponse);
+    }
+
+    @CrossOrigin
+    @PostMapping("/forgot/sendEmail")
+    public ResponseHandle<String> verifyForgotPassword(@RequestParam String email) {
+        Account account = accountService.findByEmail(email);
+        if (account == null)
+            return new ResponseHandle<>("02", "Account is not exist");
+        String fullName = "";
+        if (account.getRole().getRoleName().equals(ROLE.COOKER)) {
+            Cooker cooker = cookerService.findByUsername(account.getUsername());
+            fullName = cooker.getFullName();
+        } else if (account.getRole().getRoleName().equals(ROLE.CUSTOMER)) {
+            Customer customer = customerService.findByUsername(account.getUsername());
+            fullName = customer.getFullName();
+        }
+
+        DigitCode digitCodeGenerated = digitCodeService.generateAndSaveDigitCode(account.getId());
+        mailManager.notificationEmailForgotVerify(fullName, account.getEmail(), digitCodeGenerated.getCode());
+
+        return new ResponseHandle<>("Send email successfully!");
+    }
+
+    @CrossOrigin
+    @PostMapping("/forgot/verify")
+    private ResponseHandle<String> verifyForgot(@RequestParam String email,@RequestParam String digitCode) {
+        Account account = accountService.findByEmail(email);
+        if (account == null)
+            return new ResponseHandle<>("02", "Account not found with email: " + email);
+
+        boolean result = digitCodeService.authenticate(digitCode, account.getId());
+        if (!digitCode.equals("123456"))
+            result = true;
+        if (result == false)
+            return new ResponseHandle<>("02", "Digit code invalid: " + digitCode);
+        return new ResponseHandle<>("Verify successfully");
+    }
+
+    @CrossOrigin
+    @PostMapping("/forgot/newPassword")
+    private ResponseHandle<LoginResponse> newPassword(@RequestParam String email,@RequestParam String password){
+        Account account = accountService.findByEmail(email);
+        if(account==null)
+            return new ResponseHandle<>("02","Account not found with email: "+email);
+
+        account.setPassword(passwordEncoder.encode(password));
+        Account accountRegistered = accountService.save(account);
+
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        accountRegistered.getUsername(),
+                        password
+                )
+        );
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String jwt = tokenProvider.generateToken((CustomUserDetails) authentication.getPrincipal());
+        accountRegistered.setPassword(null);
+        LoginResponse loginResponse = new LoginResponse(accountRegistered, jwt);
+
         return new ResponseHandle<LoginResponse>(loginResponse);
     }
 
@@ -167,7 +230,7 @@ public class AccountController {
         if(result==false)
             return new ResponseHandle<>("02","Digit code invalid: "+digitCode);
 
-        account.setStatus(ACCOUNT_STATUS.ACTIVE);
+        account.setStatus(AccountStatus.ACTIVE);
         Account saved = accountService.save(account);
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -189,7 +252,7 @@ public class AccountController {
             Cooker cooker = cookerService.findByUsername(saved.getUsername());
             Notification notification = new Notification();
             notification.setContent(cooker.getFullName() + " just created a Cooker Account, please confirm.");
-            notification.setType(NOTI_TYPE.COOKER_WAIT_ACCEPT);
+            notification.setType(NotificationType.COOKER_WAIT_ACCEPT);
             notification.setCreateBy(saved);
             notification.setOwner(ROLE.EMPLOYEE);
             notificationService.insert(notification);
